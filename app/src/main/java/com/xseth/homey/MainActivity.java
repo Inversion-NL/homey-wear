@@ -6,11 +6,13 @@ import android.support.wearable.activity.WearableActivity;
 import android.support.wearable.authentication.OAuthClient;
 import android.util.Log;
 import android.view.View;
-import android.widget.TextView;
+
+import androidx.wear.widget.BoxInsetLayout;
 
 import com.chaquo.python.PyObject;
 import com.chaquo.python.Python;
 import com.chaquo.python.android.AndroidPlatform;
+import com.xseth.homey.utils.ColorRunner;
 
 public class MainActivity extends WearableActivity {
 
@@ -20,7 +22,7 @@ public class MainActivity extends WearableActivity {
 
     public static final String RETURN_URL = "https://wear.googleapis.com/3p_auth/com.xseth.homey";
 
-    private TextView mTextView;
+    private BoxInsetLayout vOnOffList;
     private OAuthClient oAuthClient;
     private PyObject athomCloudAPI;
 
@@ -56,7 +58,8 @@ public class MainActivity extends WearableActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mTextView = (TextView) findViewById(R.id.text);
+        vOnOffList = findViewById(R.id.foobar);
+        new ColorRunner(vOnOffList).execute(vOnOffList);
 
         // Enables Always-on
         setAmbientEnabled();
