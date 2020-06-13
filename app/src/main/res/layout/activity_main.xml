@@ -1,33 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.wear.widget.BoxInsetLayout
+<androidx.wear.widget.drawer.WearableDrawerLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/foobar"
-    android:padding="@dimen/box_inset_layout_padding"
-    tools:context=".MainActivity"
-    tools:deviceIds="wear">
+    android:id="@+id/onoff_back"
+    tools:context=".MainActivity">
 
-    <FrameLayout
+    <androidx.wear.widget.WearableRecyclerView
+        android:id="@+id/onoff_list"
+        android:layout_gravity="center_horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingTop="25dp"
+        android:paddingBottom="25dp"/>
+
+    <androidx.wear.widget.drawer.WearableNavigationDrawerView
+        android:id="@+id/top_navigation_drawer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="@dimen/inner_frame_layout_padding"
-        app:boxedEdges="all">
+        android:background="@color/grey"
+        app:navigationStyle="multiPage" />
 
-        <TextView
-            android:id="@+id/text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/hello_world" />
 
-        <Button
-            android:id="@+id/button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="onClickStartGoogleOAuth2Flow"
-            android:text="Button" />
-
-    </FrameLayout>
-</androidx.wear.widget.BoxInsetLayout>
+</androidx.wear.widget.drawer.WearableDrawerLayout>
