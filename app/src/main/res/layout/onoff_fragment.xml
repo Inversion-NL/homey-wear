@@ -6,19 +6,27 @@
     android:layout_height="wrap_content"
     android:layout_gravity="center"
     android:layout_marginTop="10dp"
-    android:background="@drawable/round_draw">
+    android:background="@drawable/round_draw"
+    android:clickable="true">
 
     <FrameLayout
         android:layout_width="150dp"
         android:layout_height="150dp">
 
         <ImageView
-            android:id="@+id/imageView3"
+            android:id="@+id/onOffIcon"
             android:layout_width="85dp"
             android:layout_height="85dp"
             android:layout_gravity="center"
             android:src="@drawable/common_google_signin_btn_icon_dark"
             tools:src="@tools:sample/avatars" />
+
+        <TextView
+            android:id="@+id/onOffTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="bottom|center_horizontal"
+            android:textColor="#333333" />
 
     </FrameLayout>
 

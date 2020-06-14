@@ -15,13 +15,17 @@ public class ColorRunner extends AsyncTask<View, Integer, Void> {
     // Logger TAG
     public static final String TAG = "ColorRunner";
     // Amount of time in MS to wait between color switches
-    public static final int SLEEP = 100;
+    public static final int SLEEP = 250;
     // Resolution of color possibilities
     public static final int COLOR_SIZE = 500;
     // Array depicting rainbow colors
     public static int[] COLORS = new int[COLOR_SIZE];
     // View for which background is updated
     private View view;
+
+    public static void startColorRunner(View v){
+        new ColorRunner(v).execute();
+    }
 
     public ColorRunner(View v){
         view = v;
@@ -46,21 +50,19 @@ public class ColorRunner extends AsyncTask<View, Integer, Void> {
 
         Log.d(TAG, "Starting run");
 
-        while(true){
+        do {
             color = COLORS[index];
             publishProgress(color);
 
             index += 1;
 
-            if(index == max)
+            if (index == max)
                 index = 0;
 
             try {
                 Thread.sleep(SLEEP);
-            } catch (InterruptedException e) {
-                continue;
-            }
-        }
+            } catch (InterruptedException ignored) {}
+        } while (true);
     }
 
     @Override
