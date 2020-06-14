@@ -11,7 +11,7 @@ public class Device {
     public Device(String name, Context ctx){
         this.name = name;
         this.context = ctx;
-        this.on = false;
+        this.on = true;
     }
 
     public String getTitle(){

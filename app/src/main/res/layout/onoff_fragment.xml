@@ -10,8 +10,8 @@
     android:clickable="true">
 
     <FrameLayout
-        android:layout_width="150dp"
-        android:layout_height="150dp">
+        android:layout_width="175dp"
+        android:layout_height="175dp">
 
         <ImageView
             android:id="@+id/onOffIcon"
@@ -23,10 +23,12 @@
 
         <TextView
             android:id="@+id/onOffTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="bottom|center_horizontal"
-            android:textColor="#333333" />
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:paddingTop="125dp"
+            android:textColor="#333333"
+            android:textSize="18sp" />
 
     </FrameLayout>
 

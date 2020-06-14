@@ -2,6 +2,7 @@ package com.xseth.homey.adapters;
 
 import android.annotation.SuppressLint;
 import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +17,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.xseth.homey.R;
 import com.xseth.homey.homey.Device;
 
+import static java.lang.Integer.toHexString;
+
 interface RecyclerViewClickListener {
     void onClick(View view, int position);
 }
@@ -29,8 +32,15 @@ public class OnOffAdapter extends RecyclerView.Adapter<OnOffAdapter.viewHolder> 
     @Override
     public void onClick(View view, int position) {
         Device device = this.devices[position];
+        device.inverse();
+
         String text = "Device: "+device.getTitle()+" set to: "+device.isOn();
-        Toast.makeText(view.getContext(), text, Toast.LENGTH_LONG).show();
+        Toast.makeText(view.getContext(), text, Toast.LENGTH_SHORT).show();
+
+        int color_id = device.isOn() ? R.color.device_on : R.color.device_off;
+        int color = view.getContext().getResources().getColor(color_id);
+        view.getBackground().setColorFilter(new PorterDuffColorFilter(color,
+                PorterDuff.Mode.MULTIPLY));
     }
 
     // Provide a reference to the views for each data item
@@ -86,9 +96,10 @@ public class OnOffAdapter extends RecyclerView.Adapter<OnOffAdapter.viewHolder> 
         holder.onOffTitle.setText(device.getTitle());
 
         // define background color
-        int color = device.isOn() ? R.color.device_on : R.color.device_off;
-        holder.onOffFragment.getBackground().setLevel(5);
-
+        int color_id = device.isOn() ? R.color.device_on : R.color.device_off;
+        int color = holder.onOffFragment.getContext().getResources().getColor(color_id);
+        holder.onOffFragment.getBackground().setColorFilter(new PorterDuffColorFilter(color,
+                PorterDuff.Mode.MULTIPLY));
 
         devices[position] = device;
         Log.d(TAG, "onBindVIewHolder");
