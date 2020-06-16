@@ -12,7 +12,7 @@ public class utils {
         Device[] devices = new Device[demoDataset.length];
 
         for (int i = 0; i < demoDataset.length; i++) {
-            devices[i] = new Device(demoDataset[i], ctx);
+            devices[i] = new Device(Integer.toString(i), demoDataset[i]);
         }
 
         return devices;

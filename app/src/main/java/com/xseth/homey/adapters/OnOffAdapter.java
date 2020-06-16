@@ -17,7 +17,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.xseth.homey.R;
 import com.xseth.homey.homey.Device;
 
-import static java.lang.Integer.toHexString;
+import java.util.LinkedList;
+import java.util.List;
 
 interface RecyclerViewClickListener {
     void onClick(View view, int position);
@@ -25,23 +26,9 @@ interface RecyclerViewClickListener {
 
 public class OnOffAdapter extends RecyclerView.Adapter<OnOffAdapter.viewHolder> implements RecyclerViewClickListener{
     // Array of data objects related to adapter
-    private Device[] devices;
+    private List<Device> devices;
     // Logging Tag
     private static final String TAG = "OnOffAdapter";
-
-    @Override
-    public void onClick(View view, int position) {
-        Device device = this.devices[position];
-        device.inverse();
-
-        String text = "Device: "+device.getTitle()+" set to: "+device.isOn();
-        Toast.makeText(view.getContext(), text, Toast.LENGTH_SHORT).show();
-
-        int color_id = device.isOn() ? R.color.device_on : R.color.device_off;
-        int color = view.getContext().getResources().getColor(color_id);
-        view.getBackground().setColorFilter(new PorterDuffColorFilter(color,
-                PorterDuff.Mode.MULTIPLY));
-    }
 
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
@@ -70,9 +57,7 @@ public class OnOffAdapter extends RecyclerView.Adapter<OnOffAdapter.viewHolder> 
     }
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public OnOffAdapter(Device[] devices) {
-        this.devices = devices;
-    }
+    public OnOffAdapter() { this.devices = new LinkedList<Device>(); }
 
     // Create new views (invoked by the layout manager)
     @Override
@@ -90,7 +75,7 @@ public class OnOffAdapter extends RecyclerView.Adapter<OnOffAdapter.viewHolder> 
     @SuppressLint("ResourceAsColor")
     @Override
     public void onBindViewHolder(viewHolder holder, int position) {
-        Device device = devices[position];
+        Device device = devices.get(position);
 
         holder.onOffIcon.setImageResource(device.getIcon());
         holder.onOffTitle.setText(device.getTitle());
@@ -101,13 +86,34 @@ public class OnOffAdapter extends RecyclerView.Adapter<OnOffAdapter.viewHolder> 
         holder.onOffFragment.getBackground().setColorFilter(new PorterDuffColorFilter(color,
                 PorterDuff.Mode.MULTIPLY));
 
-        devices[position] = device;
         Log.d(TAG, "onBindVIewHolder");
+    }
+
+
+    @Override
+    public void onClick(View view, int position) {
+        Device device = this.devices.get(position);
+        device.inverse();
+
+        String text = "Device: "+device.getTitle()+" set to: "+device.isOn();
+        Toast.makeText(view.getContext(), text, Toast.LENGTH_SHORT).show();
+
+        int color_id = device.isOn() ? R.color.device_on : R.color.device_off;
+        int color = view.getContext().getResources().getColor(color_id);
+        view.getBackground().setColorFilter(new PorterDuffColorFilter(color,
+                PorterDuff.Mode.MULTIPLY));
+    }
+
+    public void setDevices(List<Device> devices){
+        if(devices.size() > 0) {
+            this.devices = devices;
+            this.notifyDataSetChanged();
+        }
     }
 
     // Return the size of your dataset (invoked by the layout manager)
     @Override
     public int getItemCount() {
-        return devices.length;
+        return devices.size();
     }
 }

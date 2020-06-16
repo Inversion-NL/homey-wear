@@ -20,7 +20,12 @@ public class HomeyAPI {
         Python.start(new AndroidPlatform(ctx));
         Python py = Python.getInstance();
         PyObject athomCloud = py.getModule("athom.cloud");
-        athomCloudAPI = athomCloud.callAttr("AthomCloudAPI", CLIENT_ID, CLIENT_SECRET, RETURN_URL);
+
+        athomCloudAPI = athomCloud.callAttr("AthomCloudAPI",
+                CLIENT_ID,
+                CLIENT_SECRET,
+                RETURN_URL
+        );
     }
 
     public Boolean isLoggedIn(){

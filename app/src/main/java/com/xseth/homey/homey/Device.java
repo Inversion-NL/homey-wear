@@ -2,16 +2,45 @@ package com.xseth.homey.homey;
 
 import android.content.Context;
 
+import androidx.annotation.NonNull;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
+@Entity(tableName = "devices")
 public class Device {
+
+    @PrimaryKey
+    @NonNull
+    private String id;
 
     private String name;
     private Boolean on;
-    private Context context;
 
-    public Device(String name, Context ctx){
+    public Device(String id, String name){
+        this.id = id;
         this.name = name;
-        this.context = ctx;
         this.on = true;
+    }
+
+    public void setId(@NonNull String id) {
+        this.id = id;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setOn(Boolean on) {
+        this.on = on;
+    }
+
+    @NonNull
+    public String getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public String getTitle(){
@@ -28,7 +57,8 @@ public class Device {
 
     public int getIcon(){
         String resource_name = "ic_"+this.name;
-        String package_name = context.getPackageName();
-        return this.context.getResources().getIdentifier(resource_name, "drawable" , package_name);
+        //String package_name = context.getPackageName();
+        //return this.context.getResources().getIdentifier(resource_name, "drawable" , package_name);
+        return 0;
     }
 }
