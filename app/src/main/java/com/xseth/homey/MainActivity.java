@@ -28,6 +28,7 @@ import com.xseth.homey.adapters.OnOffAdapter;
 import com.xseth.homey.homey.Device;
 import com.xseth.homey.utils.ColorRunner;
 import com.xseth.homey.utils.HomeyAPI;
+import com.xseth.homey.utils.OAuth;
 
 import java.util.List;
 
@@ -94,7 +95,7 @@ public class MainActivity extends FragmentActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        oAuthClient.destroy();
+        OAuth.stopOAuth();
     }
 
     private Python getPython() {
