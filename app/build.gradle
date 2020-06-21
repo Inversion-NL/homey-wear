@@ -20,7 +20,7 @@ android {
 
         python {
             pip {
-                install "athom-api"
+                install "athom-api==1.1.0"
             }
         }
 
