@@ -75,28 +75,24 @@ public class OnOffAdapter extends RecyclerView.Adapter<OnOffAdapter.viewHolder> 
     @SuppressLint("ResourceAsColor")
     @Override
     public void onBindViewHolder(viewHolder holder, int position) {
+        Log.d(TAG, "onBindVIewHolder");
         Device device = devices.get(position);
 
-        holder.onOffIcon.setImageResource(device.getIcon());
-        holder.onOffTitle.setText(device.getTitle());
+        holder.onOffIcon.setImageBitmap(device.getIcon());
+        holder.onOffTitle.setText(device.getName());
 
         // define background color
         int color_id = device.isOn() ? R.color.device_on : R.color.device_off;
         int color = holder.onOffFragment.getContext().getResources().getColor(color_id);
         holder.onOffFragment.getBackground().setColorFilter(new PorterDuffColorFilter(color,
                 PorterDuff.Mode.MULTIPLY));
-
-        Log.d(TAG, "onBindVIewHolder");
     }
 
 
     @Override
     public void onClick(View view, int position) {
         Device device = this.devices.get(position);
-        device.inverse();
-
-        String text = "Device: "+device.getTitle()+" set to: "+device.isOn();
-        Toast.makeText(view.getContext(), text, Toast.LENGTH_SHORT).show();
+        device.turnOnOff();
 
         int color_id = device.isOn() ? R.color.device_on : R.color.device_off;
         int color = view.getContext().getResources().getColor(color_id);

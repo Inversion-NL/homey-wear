@@ -82,6 +82,7 @@ public class Device extends AsyncTask<String, Void, Bitmap>  {
         this.name = name;
     }
     public void setIcon(Bitmap bitmap) { this.icon = bitmap; }
+
     public void setOn(Boolean on){ this.on = on; }
 
     public Boolean isOn(){
@@ -89,6 +90,19 @@ public class Device extends AsyncTask<String, Void, Bitmap>  {
             return true;
 
         return this.on;
+    }
+
+    public void turnOnOff(){
+        // Check whether device is on or off
+        new Thread(() -> {
+            HomeyAPI api = HomeyAPI.getAPI();
+            // Wait if HomeyAPI is not yet authenticated
+            api.waitForHomeyAPI();
+
+            api.turnOnOff(this);
+
+            this.setOn(!this.isOn());
+        }).start();
     }
 
     @Override

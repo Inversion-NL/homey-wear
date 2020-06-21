@@ -149,6 +149,19 @@ public class HomeyAPI {
     }
 
     /**
+     * Turn device on or off
+     * @param device device to turn on or off
+     */
+    public void turnOnOff(Device device){
+        PyObject ret = devicesManager.callAttr(
+                "setCapabilityValue",
+                new Kwarg("deviceId", device.getId()),
+                new Kwarg("capabilityId", "onoff"),
+                new Kwarg("value", !device.isOn())
+        );
+    }
+
+    /**
      * Check for device if its on or off
      * @param device device to check
      * @return device is on?
