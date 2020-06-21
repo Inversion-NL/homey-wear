@@ -10,6 +10,7 @@ import com.chaquo.python.android.AndroidPlatform;
 import com.xseth.homey.BuildConfig;
 import com.xseth.homey.homey.Device;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +45,8 @@ public class HomeyAPI {
     private PyObject usersManager;
     // HomeyAPI DevicesManager instance
     private PyObject devicesManager;
+    // List of favorite devices IDs
+    private List<PyObject> deviceFavorites;
 
     // Get singleton instance
     public synchronized static HomeyAPI getAPI() { return INSTANCE; }
@@ -141,7 +144,19 @@ public class HomeyAPI {
 
     public List<Device> getDevices(){
         List<Device> newList = new LinkedList<>();
-        for (PyObject dev : devicesManager.callAttr("getDevices").asList()){
+        Map<String, PyObject> deviceMap = new HashMap<>();
+
+        // retrieve favorites list from user
+        Map<PyObject, PyObject> favorites = usersManager.callAttr("getUserMe").get("properties").asMap();
+        deviceFavorites = favorites.get("favoriteDevices").asList();
+
+        // Change device list to Map to quickly filter required favorites
+        for (PyObject dev : devicesManager.callAttr("getDevices").asList())
+            deviceMap.put(dev.get("id").toString(), dev);
+
+        // Only parse favorite devices
+        for (PyObject favoriteId : deviceFavorites){
+            PyObject dev = deviceMap.get(favoriteId.toString());
             newList.add(Device.parsePyDevice(dev));
         }
 
