@@ -11,7 +11,7 @@ import com.xseth.homey.homey.Device;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@Database(entities = {Device.class}, version = 1, exportSchema = false)
+@Database(entities = {Device.class}, version = 2, exportSchema = false)
 public abstract class HomeyRoomDatabase extends RoomDatabase {
 
     public abstract DeviceDAO deviceDAO();
@@ -26,7 +26,8 @@ public abstract class HomeyRoomDatabase extends RoomDatabase {
             synchronized (HomeyRoomDatabase.class) {
                 if (INSTANCE == null) {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
-                            HomeyRoomDatabase.class, "word_database")
+                            HomeyRoomDatabase.class, "device_databases")
+                            .fallbackToDestructiveMigration() // Remove data if no migration is available
                             .build();
                 }
             }
