@@ -24,6 +24,4 @@ public class DeviceViewModel extends AndroidViewModel {
     }
 
     public LiveData<List<Device>> getDevices() { return devices; }
-
-    public void insert(Device device) { mRepository.insert(device); }
 }
