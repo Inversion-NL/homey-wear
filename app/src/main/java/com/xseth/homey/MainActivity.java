@@ -1,5 +1,6 @@
 package com.xseth.homey;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.wearable.activity.WearableActivity;
 import android.support.wearable.authentication.OAuthClient;
@@ -38,6 +39,8 @@ import static com.xseth.homey.utils.utils.generateDemoDevices;
 public class MainActivity extends FragmentActivity {
 
     public static final String TAG = "HomeyWear";
+    public static Context context;
+
 
     private DeviceViewModel deviceViewModel;
     private OAuthClient oAuthClient;
@@ -45,6 +48,8 @@ public class MainActivity extends FragmentActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        context = this.getApplicationContext();
+
         // Adapter used for holding device data
         OnOffAdapter onOffAdapter;
 
