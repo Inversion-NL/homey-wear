@@ -30,8 +30,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 @Entity(tableName = "devices")
-public class Device extends AsyncTask<String, Void, Bitmap>  {
+public class Device {
 
+    @Ignore
     public static final String TAG = "Device";
 
     @PrimaryKey
@@ -39,8 +40,9 @@ public class Device extends AsyncTask<String, Void, Bitmap>  {
     private String id;
     @NonNull
     private String name;
-
+    @NonNull
     private Boolean on;
+
     @Ignore
     private Bitmap icon;
 
@@ -105,56 +107,38 @@ public class Device extends AsyncTask<String, Void, Bitmap>  {
         }).start();
     }
 
-    @Override
-    protected Bitmap doInBackground(String... urls) {
-        Bitmap result = null;
-        Log.i(TAG, "Downloading icon from: "+urls[0]);
-
-        try{
-            URL url = new URL(urls[0]);
-
-            XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
-            //factory.setNamespaceAware(true);
-            XmlPullParser xpp = factory.newPullParser();
-
-            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-            xpp.setInput(urlConnection.getInputStream(), "utf-8");
-
-            Drawable drawable = VectorDrawable.createFromXml(MainActivity.context.getResources(), xpp);
-
-            Log.i(TAG, "PNG File: "+drawable.toString());
-        } catch (MalformedURLException mue) {
-            Log.e(TAG, "Error invalid iconUrl: "+mue.getLocalizedMessage());
-        } catch (IOException ioe) {
-            Log.e(TAG, "Error downloading icon from: "+urls[0]+"\n"+ioe.getLocalizedMessage());
-        } catch (XmlPullParserException e) {
-            e.printStackTrace();
-        }
-
-        return result;
-    }
-
-    @Override
-    protected void onPostExecute(Bitmap bitmap) {
-        //Log.i(TAG, bitmap.toString());
-        //this.setIcon(bitmap);
-    }
-
     public static Device parsePyDevice(PyObject pyDevice){
-        Log.i(TAG, "Start parsing pyObject");
+        Log.v(TAG, "Start parsing pyObject: "+pyDevice.toString());
 
         String id = pyDevice.get("id").toString();
         String name = pyDevice.get("name").toString();
 
         Device device = new Device(id, name);
 
-        String url = HomeyAPI.getAPI().getHomeyURL();
-        url += pyDevice.get("iconObj").asMap().get("url").toString();
+        final String strUrl = HomeyAPI.getAPI().getHomeyURL() + pyDevice.get("iconObj").asMap().get("url").toString();
 
-        // Retrieve Icon in background
-        //device.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, url);
+        // Fetch SVG icon in the background
+        new Thread(() -> {
+            try{
+                URL url = new URL(strUrl);
 
-        Log.i(TAG, "Started task");
+                XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+                factory.setNamespaceAware(true);
+                XmlPullParser xpp = factory.newPullParser();
+
+                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                //xpp.setInput(urlConnection.getInputStream(), "utf-8");
+
+                //Drawable drawable = VectorDrawable.createFromXml(MainActivity.context.getResources(), xpp);
+
+            } catch (MalformedURLException mue) {
+                Log.e(TAG, "Error invalid iconUrl: "+mue.getLocalizedMessage());
+            } catch (IOException ioe) {
+                Log.e(TAG, "Error downloading icon from: "+strUrl+"\n"+ioe.getLocalizedMessage());
+            } catch (XmlPullParserException e) {
+                e.printStackTrace();
+            }
+        }).start();
 
         return device;
     }
