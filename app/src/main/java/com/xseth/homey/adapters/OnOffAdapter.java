@@ -17,7 +17,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.xseth.homey.R;
 import com.xseth.homey.homey.Device;
 
-import java.util.LinkedList;
 import java.util.List;
 
 interface RecyclerViewClickListener {
@@ -56,9 +55,6 @@ public class OnOffAdapter extends RecyclerView.Adapter<OnOffAdapter.viewHolder> 
         }
     }
 
-    // Provide a suitable constructor (depends on the kind of dataset)
-    public OnOffAdapter() { this.devices = new LinkedList<Device>(); }
-
     // Create new views (invoked by the layout manager)
     @Override
     public OnOffAdapter.viewHolder onCreateViewHolder(ViewGroup parent,
@@ -88,16 +84,21 @@ public class OnOffAdapter extends RecyclerView.Adapter<OnOffAdapter.viewHolder> 
                 PorterDuff.Mode.MULTIPLY));
     }
 
-
     @Override
     public void onClick(View view, int position) {
         Device device = this.devices.get(position);
-        device.turnOnOff();
 
-        int color_id = device.isOn() ? R.color.device_on : R.color.device_off;
-        int color = view.getContext().getResources().getColor(color_id);
-        view.getBackground().setColorFilter(new PorterDuffColorFilter(color,
-                PorterDuff.Mode.MULTIPLY));
+        try {
+            device.turnOnOff();
+
+            int color_id = device.isOn() ? R.color.device_on : R.color.device_off;
+            int color = view.getContext().getResources().getColor(color_id);
+            view.getBackground().setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.MULTIPLY));
+
+        }catch (Exception e){
+            // Show popup if fail to turn on or off
+            Toast.makeText(view.getContext(), R.string.fail_turnonoff, Toast.LENGTH_LONG).show();
+        }
     }
 
     public void setDevices(List<Device> devices){
@@ -107,9 +108,11 @@ public class OnOffAdapter extends RecyclerView.Adapter<OnOffAdapter.viewHolder> 
         }
     }
 
-    // Return the size of your dataset (invoked by the layout manager)
     @Override
     public int getItemCount() {
+        if(devices == null)
+            return 0;
+
         return devices.size();
     }
 }
