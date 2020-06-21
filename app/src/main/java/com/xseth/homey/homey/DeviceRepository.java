@@ -5,12 +5,16 @@ import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 
+import com.chaquo.python.PyObject;
 import com.xseth.homey.storage.DeviceDAO;
 import com.xseth.homey.storage.HomeyRoomDatabase;
+import com.xseth.homey.utils.HomeyAPI;
 
 import java.util.List;
 
 public class DeviceRepository {
+    private static final String TAG = "DeviceRepository";
+
     private DeviceDAO deviceDAO;
     private LiveData<List<Device>> devices;
 
@@ -26,7 +30,21 @@ public class DeviceRepository {
 
     // Room executes all queries on a separate thread.
     // Observed LiveData will notify the observer when the data has changed.
-    public LiveData<List<Device>> getAllDevices() {
+    public synchronized LiveData<List<Device>> getAllDevices() {
+        new Thread(() -> {
+            if(!deviceDAO.hasDevices()) {
+                Log.i(TAG, "No saved devices, gathering");
+                HomeyAPI api = HomeyAPI.getAPI();
+
+                // Wait for HomeyAPI to be ready
+                api.waitForHomeyAPI();
+
+                // Save the devices in DB
+                for (Device dev : api.getDevices())
+                    this.insert(dev);
+            }
+        }).start();
+
         return devices;
     }
 

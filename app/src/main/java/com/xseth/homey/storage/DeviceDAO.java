@@ -20,6 +20,9 @@ public interface DeviceDAO {
     @Query("DELETE FROM devices")
     void deleteAll();
 
-    @Query("SELECT * from devices ORDER BY name ASC")
+    @Query("SELECT EXISTS(SELECT * FROM devices)")
+    boolean hasDevices();
+
+    @Query("SELECT * from devices")
     LiveData<List<Device>> getDevices();
 }

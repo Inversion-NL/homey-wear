@@ -12,6 +12,7 @@ import com.xseth.homey.homey.Device;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class HomeyAPI {
 
@@ -45,7 +46,7 @@ public class HomeyAPI {
     private PyObject devicesManager;
 
     // Get singleton instance
-    public static HomeyAPI getAPI() { return INSTANCE; }
+    public synchronized static HomeyAPI getAPI() { return INSTANCE; }
 
     /**
      * Build HomeyAPI
@@ -79,14 +80,30 @@ public class HomeyAPI {
         );
     }
 
+    public synchronized Boolean isLoggedIn(){
+        return athomCloudAPI.callAttr("isLoggedIn").toBoolean();
+    }
+
+    public synchronized Boolean isHomeyAuthenticated(){
+        return this.homeyAPI != null;
+    }
+
+    public synchronized void waitForHomeyAPI(){
+        if (!this.isHomeyAuthenticated()) {
+            synchronized (this) {
+                try {
+                    this.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
     public void setToken(String token){
         Log.i(TAG, "Stored OAuth token");
         athomCloudAPI.callAttr("authenticateWithAuthorizationCode", token);
         authenticateHomey();
-    }
-
-    public Boolean isLoggedIn(){
-        return athomCloudAPI.callAttr("isLoggedIn").toBoolean();
     }
 
     public String getLoginURL() {
@@ -100,17 +117,26 @@ public class HomeyAPI {
         return homeyAPI.get("url").toString();
     }
 
-    public void authenticateHomey(){
-        PyObject user = athomCloudAPI.callAttr("getUser");
-        PyObject homey = user.callAttr("getFirstHomey");
+    public synchronized void authenticateHomey() {
+        Log.d(TAG, "Start authenticating API");
+        if (this.homeyAPI == null) {
+            new Thread(() -> {
+                Log.d(TAG, "Start authenticating API (Thread)");
+                PyObject user = athomCloudAPI.callAttr("getUser");
+                PyObject homey = user.callAttr("getFirstHomey");
 
-        homeyAPI = homey.callAttr("authenticate", new Kwarg("strategy", "cloud"));
-        devicesManager = homeyAPI.get("devices");
-        usersManager = homeyAPI.get("users");
+                homeyAPI = homey.callAttr("authenticate", new Kwarg("strategy", "cloud"));
+                devicesManager = homeyAPI.get("devices");
+                usersManager = homeyAPI.get("users");
 
-        Log.i(TAG, "Authenticated against HomeyAPI: "+homeyAPI.toString());
+                Log.i(TAG, "Authenticated against HomeyAPI: " + homey.toString());
 
-
+                // Notify all threads that the homeyAPI is authenticated
+                synchronized (this){
+                    this.notifyAll();
+                }
+            }).start();
+        }
     }
 
     public List<Device> getDevices(){
@@ -120,6 +146,25 @@ public class HomeyAPI {
         }
 
         return newList;
+    }
+
+    /**
+     * Check for device if its on or off
+     * @param device device to check
+     * @return device is on?
+     */
+    public boolean isOn(Device device){
+        PyObject pyDevice = devicesManager.callAttr(
+                            "getDevice",
+                            new Kwarg("id", device.getId())
+        );
+
+        Map<PyObject, PyObject> capabilities = pyDevice.get("capabilitiesObj").asMap();
+        if(capabilities.containsKey("onoff")){
+            return capabilities.get("onoff").asMap().get("value").toBoolean();
+        }else{
+            return false;
+        }
     }
 
     /**
