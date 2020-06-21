@@ -1,10 +1,13 @@
 package com.xseth.homey;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.wearable.activity.ConfirmationActivity;
 import android.support.wearable.activity.WearableActivity;
 import android.support.wearable.authentication.OAuthClient;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -43,15 +46,13 @@ public class MainActivity extends FragmentActivity {
 
 
     private DeviceViewModel deviceViewModel;
-    private OAuthClient oAuthClient;
     private HomeyAPI api;
+    // Adapter used for holding device data
+    private OnOffAdapter onOffAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         context = this.getApplicationContext();
-
-        // Adapter used for holding device data
-        OnOffAdapter onOffAdapter;
 
         // Create view
         super.onCreate(savedInstanceState);
@@ -65,7 +66,8 @@ public class MainActivity extends FragmentActivity {
         // Start rainbow color thread
         startColorRunner(vOnOffBack);
 
-        api = new HomeyAPI(this);
+        // Start the HomeyAPI
+        api = HomeyAPI.buildHomeyAPI(this);
 
         // use a linear layout manager
         vOnOffList.setLayoutManager(new LinearLayoutManager(this));
@@ -78,6 +80,21 @@ public class MainActivity extends FragmentActivity {
         PagerSnapHelper snapHelper = new PagerSnapHelper();
         snapHelper.attachToRecyclerView(vOnOffList);
 
+        if(!api.isLoggedIn()){
+            /**
+             Intent intent = new Intent(this, ConfirmationActivity.class);
+             intent.putExtra(ConfirmationActivity.EXTRA_ANIMATION_TYPE,
+             ConfirmationActivity.OPEN_ON_PHONE_ANIMATION);
+             intent.putExtra(ConfirmationActivity.EXTRA_MESSAGE,
+             "Authenticate via phone");
+             startActivity(intent);
+             **/
+            OAuth.startOAuth(this);
+        }else {
+            //OAuth.startOAuth(this);
+            api.authenticateHomey();
+        }
+
         // Get ViewModelProvider, and get LiveData devices list
         deviceViewModel = new ViewModelProvider(this).get(DeviceViewModel.class);
         deviceViewModel.getDevices().observe(this, new Observer<List<Device>>() {
@@ -88,11 +105,6 @@ public class MainActivity extends FragmentActivity {
             }
         });
 
-        Device[] tmp = generateDemoDevices(this.getApplicationContext());
-        for(int i=0; i < tmp.length; i++){
-            deviceViewModel.insert(tmp[i]);
-        }
-
         // Enables Always-on
         //setAmbientEnabled();
     }
@@ -101,11 +113,6 @@ public class MainActivity extends FragmentActivity {
     protected void onDestroy() {
         super.onDestroy();
         OAuth.stopOAuth();
-    }
-
-    private Python getPython() {
-        Python.start(new AndroidPlatform(this));
-        return Python.getInstance();
     }
 }
 
