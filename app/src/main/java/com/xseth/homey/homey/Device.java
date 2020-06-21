@@ -95,16 +95,14 @@ public class Device {
     }
 
     public void turnOnOff(){
-        // Check whether device is on or off
-        new Thread(() -> {
-            HomeyAPI api = HomeyAPI.getAPI();
-            // Wait if HomeyAPI is not yet authenticated
-            api.waitForHomeyAPI();
+        HomeyAPI api = HomeyAPI.getAPI();
+        // Wait if HomeyAPI is not yet authenticated
+        api.waitForHomeyAPI();
 
-            api.turnOnOff(this);
+        boolean onoff = !this.on;
+        api.turnOnOff(this, onoff);
 
-            this.setOn(!this.isOn());
-        }).start();
+        this.setOn(onoff);
     }
 
     public static Device parsePyDevice(PyObject pyDevice){
