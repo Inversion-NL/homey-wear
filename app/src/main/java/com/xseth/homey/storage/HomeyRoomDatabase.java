@@ -11,7 +11,7 @@ import com.xseth.homey.homey.Device;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@Database(entities = {Device.class}, version = 5, exportSchema = false)
+@Database(entities = {Device.class}, version = 6, exportSchema = false)
 public abstract class HomeyRoomDatabase extends RoomDatabase {
 
     public abstract DeviceDAO deviceDAO();
