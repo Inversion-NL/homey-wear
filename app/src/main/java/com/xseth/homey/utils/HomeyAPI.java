@@ -3,23 +3,29 @@ package com.xseth.homey.utils;
 import android.content.Context;
 import android.util.Log;
 
-import androidx.room.Room;
-
 import com.chaquo.python.Kwarg;
 import com.chaquo.python.PyObject;
 import com.chaquo.python.Python;
 import com.chaquo.python.android.AndroidPlatform;
 import com.xseth.homey.BuildConfig;
-import com.xseth.homey.storage.HomeyRoomDatabase;
+import com.xseth.homey.homey.Device;
+
+import java.util.LinkedList;
+import java.util.List;
 
 public class HomeyAPI {
 
+    // Debug log
     public static final String TAG = "HomeyAPI";
-    private static volatile HomeyAPI INSTANCE;
+    // Athom Homey client ID for accessing API
     public static final String CLIENT_ID = BuildConfig.ATHOM_CLIENT_ID;
+    // Athom Homey client secret for accessing API
     public static final String CLIENT_SECRET = BuildConfig.ATHOM_CLIENT_SECRET;
+    // ReturnURL for OAuth2
     public static final String RETURN_URL = "https://wear.googleapis.com/3p_auth/com.xseth.homey";
+    // List of OAuth2 scopes used in Athom Homey API
     public static final String[] SCOPES = {
+            "account.homeys.readonly",
             "homey.user.self",
             "homey.device.readonly",
             "homey.device.control",
@@ -27,19 +33,33 @@ public class HomeyAPI {
             "homey.flow.readonly"
     };
 
+    // Instance HomeyAPI for singleton
+    private static volatile HomeyAPI INSTANCE;
+    // AthomCloudAPI instance
     private PyObject athomCloudAPI;
+    // HomeyAPI instance
+    private PyObject homeyAPI;
+    // HomeyAPI UsersManager instance
+    private PyObject usersManager;
+    // HomeyAPI DevicesManager instance
+    private PyObject devicesManager;
 
+    // Get singleton instance
     public static HomeyAPI getAPI() { return INSTANCE; }
 
+    /**
+     * Build HomeyAPI
+     * @param context ApplicationContext
+     * @return HomeyAPI instance
+     */
     public static HomeyAPI buildHomeyAPI(final Context context){
         HomeyAPI.INSTANCE = new HomeyAPI(context);
         return HomeyAPI.INSTANCE;
     }
 
     public HomeyAPI(Context ctx){
-        Python.start(new AndroidPlatform(ctx));
-        Python py = Python.getInstance();
-        PyObject athomCloud = py.getModule("athom.cloud");
+        // Retrieve the python environment
+        Python py = getPython(ctx);
 
         // Get path to local storage
         String storagePath = ctx.getFilesDir().getAbsolutePath() + "/homeyLocalStorage.db";
@@ -50,7 +70,8 @@ public class HomeyAPI {
                 new Kwarg("path", storagePath)
                 );
 
-        athomCloudAPI = athomCloud.callAttr("AthomCloudAPI",
+        // Get AthomCloudAPI instance
+        athomCloudAPI = py.getModule("athom.cloud").callAttr("AthomCloudAPI",
                 CLIENT_ID,
                 CLIENT_SECRET,
                 RETURN_URL,
@@ -59,8 +80,9 @@ public class HomeyAPI {
     }
 
     public void setToken(String token){
-        athomCloudAPI.callAttr("authenticateWithAuthorizationCode", token);
         Log.i(TAG, "Stored OAuth token");
+        athomCloudAPI.callAttr("authenticateWithAuthorizationCode", token);
+        authenticateHomey();
     }
 
     public Boolean isLoggedIn(){
@@ -72,5 +94,43 @@ public class HomeyAPI {
                 "getLoginUrl",
                 new Kwarg("scopes", SCOPES)
         ).toString();
+    }
+
+    public String getHomeyURL(){
+        return homeyAPI.get("url").toString();
+    }
+
+    public void authenticateHomey(){
+        PyObject user = athomCloudAPI.callAttr("getUser");
+        PyObject homey = user.callAttr("getFirstHomey");
+
+        homeyAPI = homey.callAttr("authenticate", new Kwarg("strategy", "cloud"));
+        devicesManager = homeyAPI.get("devices");
+        usersManager = homeyAPI.get("users");
+
+        Log.i(TAG, "Authenticated against HomeyAPI: "+homeyAPI.toString());
+
+
+    }
+
+    public List<Device> getDevices(){
+        List<Device> newList = new LinkedList<>();
+        for (PyObject dev : devicesManager.callAttr("getDevices").asList()){
+            newList.add(Device.parsePyDevice(dev));
+        }
+
+        return newList;
+    }
+
+    /**
+     * Retrieve Python instance, start environment if necessary
+     * @param ctx ApplicationContext
+     * @return Python instance
+     */
+    private Python getPython(Context ctx){
+        if(!Python.isStarted())
+            Python.start(new AndroidPlatform(ctx));
+
+        return Python.getInstance();
     }
 }
