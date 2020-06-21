@@ -53,7 +53,12 @@ public class DeviceRepository {
     public void insert(final Device device) {
         HomeyRoomDatabase.databaseWriteExecutor.execute(() -> {
             deviceDAO.insert(device);
-            Log.d("DeviceViewModel", "Inserted");
+        });
+    }
+
+    public void update(final Device device) {
+        HomeyRoomDatabase.databaseWriteExecutor.execute(() -> {
+            deviceDAO.updateDevices(device);
         });
     }
 }

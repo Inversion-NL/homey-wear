@@ -23,7 +23,7 @@ public class MainActivity extends FragmentActivity {
     // General android context
     public static Context context;
     // deviceViewModel for holding device data
-    private DeviceViewModel deviceViewModel;
+    public static DeviceViewModel deviceViewModel;
     // Adapter used for holding device data
     private OnOffAdapter onOffAdapter;
 

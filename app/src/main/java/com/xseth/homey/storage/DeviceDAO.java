@@ -2,9 +2,11 @@ package com.xseth.homey.storage;
 
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
+import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import androidx.room.Update;
 
 import com.xseth.homey.homey.Device;
 
@@ -17,12 +19,16 @@ public interface DeviceDAO {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     void insert(Device device);
 
-    @Query("DELETE FROM devices")
-    void deleteAll();
+    @Delete
+    void deleteAll(Device... devices);
 
     @Query("SELECT EXISTS(SELECT * FROM devices)")
     boolean hasDevices();
 
     @Query("SELECT * from devices")
     LiveData<List<Device>> getDevices();
+
+    @Update
+    void updateDevices(Device... devices);
+
 }
