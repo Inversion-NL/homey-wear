@@ -53,12 +53,7 @@ public class Device {
 
         // Check whether device is on or off
         new Thread(() -> {
-            HomeyAPI api = HomeyAPI.getAPI();
-
-            // Wait for HomeyAPI to be authenticated
-            api.waitForHomeyAPI();
-
-            this.setOn(api.isOn(this));
+            this.verifyOnOff();
         }).start();
     }
 
@@ -86,6 +81,27 @@ public class Device {
     public void setIcon(Bitmap bitmap) { this.icon = bitmap; }
 
     public void setOn(Boolean on){ this.on = on; }
+
+    /**
+     * Verify whether this device is turned on or off
+     * @return whether onoff is different than currently in device
+     */
+    public boolean verifyOnOff(){
+        HomeyAPI api = HomeyAPI.getAPI();
+
+        // Wait for HomeyAPI to be authenticated
+        api.waitForHomeyAPI();
+
+        boolean onoff = api.isOn(this);
+
+        if (onoff != this.on){
+            this.setOn(onoff);
+            MainActivity.deviceViewModel.updateDevice(this);
+            return true;
+        }
+
+        return false;
+    }
 
     public Boolean isOn(){
         if(this.on == null)
