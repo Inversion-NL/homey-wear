@@ -43,7 +43,7 @@ android {
 
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
-    implementation 'com.google.android.support:wearable:2.5.0'
+    implementation 'com.google.android.support:wearable:2.7.0'
     implementation 'com.google.android.gms:play-services-wearable:17.0.0'
     implementation 'androidx.percentlayout:percentlayout:1.0.0'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
@@ -51,7 +51,7 @@ dependencies {
 
     implementation 'androidx.wear:wear:1.0.0'
     implementation 'androidx.cardview:cardview:1.0.0'
-    compileOnly 'com.google.android.wearable:wearable:2.5.0'
+    compileOnly 'com.google.android.wearable:wearable:2.7.0'
 
     // Room components
     implementation "androidx.room:room-runtime:$rootProject.roomVersion"
