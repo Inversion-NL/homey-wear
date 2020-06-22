@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="fail_turnonoff">Probleem met het aan/uit zetten</string>
+    <string name="authenticate">Login via de mobiel</string>
+    <string name="success_authenticate">Login via phone gelukt</string>
+    <string name="failure_authenticate">Login via mobiel mislukt</string>
+    <string name="refresh_favorites">Hernieuw favorite apparten</string>
 </resources>

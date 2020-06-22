@@ -19,6 +19,8 @@ public class OAuth {
             Log.i(TAG, "Received onAuth response");
             String token = responseUrl.getQueryParameter("code");
 
+            utils.showConfirmationSuccess(MainActivity.context, R.string.success_authenticate);
+
             // Set APItoken in seperate thread
             HomeyAPI.getAPI().setToken(token);
             Runnable runnable = () -> HomeyAPI.getAPI().setToken(token);
@@ -29,6 +31,7 @@ public class OAuth {
 
         @Override
         public void onAuthorizationError(int errorCode) {
+            utils.showConfirmationFailure(MainActivity.context, R.string.failure_authenticate);
             Log.e(TAG, "OAuth error: "+errorCode);
         }
     }

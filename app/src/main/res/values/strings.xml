@@ -2,4 +2,8 @@
 <resources>
     <string name="app_name" translatable="false">Homey Wear</string>
     <string name="fail_turnonoff">Failed to turn device on or off</string>
+    <string name="authenticate">Login via phone</string>
+    <string name="success_authenticate">Login via phone succeeded</string>
+    <string name="failure_authenticate">Login via phone failed</string>
+    <string name="refresh_favorites">Refresh device favorites</string>
 </resources>
