@@ -49,7 +49,16 @@ public class HomeyAPI {
     private List<PyObject> deviceFavorites;
 
     // Get singleton instance
-    public synchronized static HomeyAPI getAPI() { return INSTANCE; }
+    public synchronized static HomeyAPI getAPI() {
+        // Wait for Thread to build HomeyAPI
+        while(INSTANCE == null) {
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {}
+        }
+
+        return INSTANCE;
+    }
 
     /**
      * Build HomeyAPI
@@ -84,7 +93,11 @@ public class HomeyAPI {
     }
 
     public synchronized Boolean isLoggedIn(){
-        return athomCloudAPI.callAttr("isLoggedIn").toBoolean();
+        try {
+            return athomCloudAPI.callAttrThrows("isLoggedIn").toBoolean();
+        } catch (Throwable e) {
+            return false;
+        }
     }
 
     public synchronized Boolean isHomeyAuthenticated(){
@@ -191,7 +204,7 @@ public class HomeyAPI {
         if(capabilities.containsKey("onoff")){
             return capabilities.get("onoff").asMap().get("value").toBoolean();
         }else{
-            return false;
+            return true;
         }
     }
 

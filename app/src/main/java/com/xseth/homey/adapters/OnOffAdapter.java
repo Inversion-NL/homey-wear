@@ -96,6 +96,7 @@ public class OnOffAdapter extends RecyclerView.Adapter<OnOffAdapter.viewHolder> 
             view.getBackground().setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.MULTIPLY));
 
         }catch (Exception e){
+            Log.e(TAG, "Failed to turn onoff: "+e.getLocalizedMessage());
             // Show popup if fail to turn on or off
             Toast.makeText(view.getContext(), R.string.fail_turnonoff, Toast.LENGTH_LONG).show();
         }

@@ -119,6 +119,7 @@ public class Device {
         api.turnOnOff(this, onoff);
 
         this.setOn(onoff);
+        MainActivity.deviceViewModel.updateDevice(this);
     }
 
     public static Device parsePyDevice(PyObject pyDevice){
