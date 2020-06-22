@@ -43,8 +43,20 @@ public class MainActivity extends FragmentActivity {
         // Start rainbow color thread
         startColorRunner(vOnOffBack);
 
-        // Start the HomeyAPI
-        HomeyAPI api = HomeyAPI.buildHomeyAPI(this);
+        // Verify if there is authentication in background
+        new Thread(() -> {
+
+            // Start the HomeyAPI
+            HomeyAPI api = HomeyAPI.buildHomeyAPI(this);
+
+            if(api.isLoggedIn())
+                api.authenticateHomey();
+
+            else {
+                utils.showConfirmationPhone(MainActivity.context, R.string.authenticate);
+                OAuth.startOAuth(this);
+            }
+        }).start();
 
         // use a linear layout manager
         vOnOffList.setLayoutManager(new LinearLayoutManager(this));
@@ -56,21 +68,6 @@ public class MainActivity extends FragmentActivity {
         // Add PagerSnapHelper to vOnOffList
         PagerSnapHelper snapHelper = new PagerSnapHelper();
         snapHelper.attachToRecyclerView(vOnOffList);
-
-        if(!api.isLoggedIn()){
-            /**
-             Intent intent = new Intent(this, ConfirmationActivity.class);
-             intent.putExtra(ConfirmationActivity.EXTRA_ANIMATION_TYPE,
-             ConfirmationActivity.OPEN_ON_PHONE_ANIMATION);
-             intent.putExtra(ConfirmationActivity.EXTRA_MESSAGE,
-             "Authenticate via phone");
-             startActivity(intent);
-             **/
-            OAuth.startOAuth(this);
-        }else {
-            //OAuth.startOAuth(this);
-            api.authenticateHomey();
-        }
 
         // Get ViewModelProvider, and get LiveData devices list
         deviceViewModel = new ViewModelProvider(this).get(DeviceViewModel.class);
