@@ -71,12 +71,12 @@ public class MainActivity extends FragmentActivity {
 
         // Get ViewModelProvider, and get LiveData devices list
         deviceViewModel = new ViewModelProvider(this).get(DeviceViewModel.class);
-        deviceViewModel.getDevices().observe(this, devices -> {
-            onOffAdapter.setDevices(devices);
-        });
+        deviceViewModel.getDevices().observe(this, devices -> { onOffAdapter.setDevices(devices); });
 
-        // Enables Always-on
-        //setAmbientEnabled();
+        // Top Navigation Drawer
+        drawer = findViewById(R.id.action_drawer);
+        drawer.setOnMenuItemClickListener(this);
+
     }
 
     @Override
