@@ -1,9 +1,14 @@
 package com.xseth.homey.utils;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
+import android.support.wearable.activity.ConfirmationActivity;
 import android.support.wearable.authentication.OAuthClient;
 import android.util.Log;
+
+import com.xseth.homey.MainActivity;
+import com.xseth.homey.R;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

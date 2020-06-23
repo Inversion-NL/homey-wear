@@ -16,11 +16,11 @@
         android:paddingTop="10dp"
         android:paddingBottom="10dp"/>
 
-    <androidx.wear.widget.drawer.WearableNavigationDrawerView
-        android:id="@+id/top_navigation_drawer"
+    <androidx.wear.widget.drawer.WearableActionDrawerView
+        android:id="@+id/action_drawer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/grey"
-        app:navigationStyle="multiPage" />
+        android:background="@android:color/holo_red_light"
+        app:actionMenu="@menu/drawer_menu"/>
 
 </androidx.wear.widget.drawer.WearableDrawerLayout>

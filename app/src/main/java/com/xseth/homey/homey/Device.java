@@ -96,7 +96,7 @@ public class Device {
 
         if (onoff != this.on){
             this.setOn(onoff);
-            MainActivity.deviceViewModel.updateDevice(this);
+            DeviceRepository.getInstance().update(this);
             return true;
         }
 
@@ -119,7 +119,7 @@ public class Device {
         api.turnOnOff(this, onoff);
 
         this.setOn(onoff);
-        MainActivity.deviceViewModel.updateDevice(this);
+        DeviceRepository.getInstance().update(this);
     }
 
     public static Device parsePyDevice(PyObject pyDevice){

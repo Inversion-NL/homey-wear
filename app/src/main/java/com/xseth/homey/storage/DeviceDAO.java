@@ -20,7 +20,10 @@ public interface DeviceDAO {
     void insert(Device device);
 
     @Delete
-    void deleteAll(Device... devices);
+    void deleteDevice(Device... devices);
+
+    @Query("DELETE FROM devices")
+    void deleteAll();
 
     @Query("SELECT EXISTS(SELECT * FROM devices)")
     boolean hasDevices();

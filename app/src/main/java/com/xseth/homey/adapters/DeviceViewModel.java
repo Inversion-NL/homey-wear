@@ -19,11 +19,24 @@ public class DeviceViewModel extends AndroidViewModel {
 
     public DeviceViewModel (Application application) {
         super(application);
-        mRepository = new DeviceRepository(application);
+
+        mRepository = DeviceRepository.getInstance();
+        if (mRepository == null)
+            mRepository = DeviceRepository.buildInstance(application);
+
         devices = mRepository.getAllDevices();
     }
 
     public LiveData<List<Device>> getDevices() { return devices; }
 
     public void updateDevice(Device device) { mRepository.update(device); }
+
+    public void refreshDevices(){
+        // Remove all devices from viewModel & DB
+        for(Device dev : this.devices.getValue())
+            mRepository.deleteDevices();
+
+        // Force reloading of all devices
+        mRepository.getAllDevices(true);
+    }
 }

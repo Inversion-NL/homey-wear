@@ -4,6 +4,7 @@ import android.app.Application;
 import android.util.Log;
 
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
 import com.chaquo.python.PyObject;
 import com.xseth.homey.storage.DeviceDAO;
@@ -15,13 +16,20 @@ import java.util.List;
 public class DeviceRepository {
     private static final String TAG = "DeviceRepository";
 
+    private static DeviceRepository instance;
+
     private DeviceDAO deviceDAO;
     private LiveData<List<Device>> devices;
 
-    // Note that in order to unit test the WordRepository, you have to remove the Application
-    // dependency. This adds complexity and much more code, and this sample is not about testing.
-    // See the BasicSample in the android-architecture-components repository at
-    // https://github.com/googlesamples
+    public static DeviceRepository getInstance(){
+        return instance;
+    }
+
+    public static DeviceRepository buildInstance(Application application){
+        instance = new DeviceRepository(application);
+        return instance;
+    }
+
     public DeviceRepository(Application application) {
         HomeyRoomDatabase db = HomeyRoomDatabase.getDatabase(application);
         deviceDAO = db.deviceDAO();
@@ -30,9 +38,9 @@ public class DeviceRepository {
 
     // Room executes all queries on a separate thread.
     // Observed LiveData will notify the observer when the data has changed.
-    public synchronized LiveData<List<Device>> getAllDevices() {
+    public synchronized LiveData<List<Device>> getAllDevices(boolean force) {
         new Thread(() -> {
-            if(!deviceDAO.hasDevices()) {
+            if(!deviceDAO.hasDevices() || force) {
                 Log.i(TAG, "No saved devices, gathering");
                 HomeyAPI api = HomeyAPI.getAPI();
 
@@ -48,6 +56,10 @@ public class DeviceRepository {
         return devices;
     }
 
+    public synchronized LiveData<List<Device>> getAllDevices() {
+        return this.getAllDevices(false);
+    }
+
     // You must call this on a non-UI thread or your app will throw an exception. Room ensures
     // that you're not doing any long running operations on the main thread, blocking the UI.
     public void insert(final Device device) {
@@ -61,4 +73,17 @@ public class DeviceRepository {
             deviceDAO.updateDevices(device);
         });
     }
+
+    public void deleteDevice(Device dev){
+        HomeyRoomDatabase.databaseWriteExecutor.execute(() -> {
+            deviceDAO.deleteDevice(dev);
+        });
+    }
+
+    public void deleteDevices(){
+        HomeyRoomDatabase.databaseWriteExecutor.execute(() -> {
+            deviceDAO.deleteAll();
+        });
+    }
+
 }
