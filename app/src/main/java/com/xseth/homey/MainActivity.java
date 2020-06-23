@@ -45,7 +45,8 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
         WearableDrawerLayout vOnOffBack = findViewById(R.id.onoff_back);
         // Recycler view containing devices
         WearableRecyclerView vOnOffList = findViewById(R.id.onoff_list);
-
+        vOnOffList.requestFocus(); // Focus required for scrolling via hw-buttons
+        
         // Start rainbow color thread
         startColorRunner(vOnOffBack);
 

@@ -10,11 +10,13 @@
 
     <androidx.wear.widget.WearableRecyclerView
         android:id="@+id/onoff_list"
-        android:layout_gravity="center_horizontal"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
         android:paddingTop="10dp"
-        android:paddingBottom="10dp"/>
+        android:paddingBottom="10dp" />
 
     <androidx.wear.widget.drawer.WearableActionDrawerView
         android:id="@+id/action_drawer"
