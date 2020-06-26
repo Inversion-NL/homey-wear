@@ -1,24 +1,14 @@
 package com.xseth.homey.homey;
 
-import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.Icon;
-import android.graphics.drawable.VectorDrawable;
-import android.os.AsyncTask;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
-import androidx.room.TypeConverters;
 
 import com.chaquo.python.PyObject;
-import com.xseth.homey.MainActivity;
-import com.xseth.homey.storage.BitmapConverter;
-import com.xseth.homey.utils.HomeyAPI;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;

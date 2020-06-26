@@ -20,7 +20,7 @@ import androidx.wear.widget.drawer.WearableDrawerLayout;
 import com.xseth.homey.adapters.DeviceViewModel;
 import com.xseth.homey.adapters.OnOffAdapter;
 import com.xseth.homey.utils.ColorRunner;
-import com.xseth.homey.utils.HomeyAPI;
+import com.xseth.homey.homey.HomeyAPI;
 import com.xseth.homey.utils.OAuth;
 import com.xseth.homey.utils.utils;
 

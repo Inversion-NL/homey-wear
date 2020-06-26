@@ -1,15 +1,13 @@
-package com.xseth.homey.utils;
+package com.xseth.homey.homey;
 
 import android.content.Context;
 import android.util.Log;
 
 import com.chaquo.python.Kwarg;
-import com.chaquo.python.PyException;
 import com.chaquo.python.PyObject;
 import com.chaquo.python.Python;
 import com.chaquo.python.android.AndroidPlatform;
 import com.xseth.homey.BuildConfig;
-import com.xseth.homey.homey.Device;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -191,21 +189,27 @@ public class HomeyAPI {
      * @param device device to check
      * @return device is on?
      */
-    public boolean isOn(Device device){
-        PyObject pyDevice = devicesManager.callAttr(
-                            "getDevice",
-                            new Kwarg("id", device.getId())
-        );
+    public boolean isOn(Device device) {
+        try {
+            PyObject pyDevice = devicesManager.callAttrThrows(
+                    "getDevice",
+                    new Kwarg("id", device.getId())
+            );
 
-        Map<PyObject, PyObject> capabilities = pyDevice.get("capabilitiesObj").asMap();
-        if(capabilities.containsKey("onoff")){
-            return capabilities.get("onoff").asMap().get("value").toBoolean();
-        }else{
-            return true;
+            Map<PyObject, PyObject> capabilities = pyDevice.get("capabilitiesObj").asMap();
+            if (capabilities.containsKey("onoff")) {
+                return capabilities.get("onoff").asMap().get("value").toBoolean();
+            } else {
+                return true;
+            }
+        } catch (Throwable throwable) {
+            Log.e(TAG, "Device<"+device+">.isOn error: "+throwable.getLocalizedMessage());
         }
+
+        return true;
     }
 
-    /**
+        /**
      * Retrieve Python instance, start environment if necessary
      * @param ctx ApplicationContext
      * @return Python instance

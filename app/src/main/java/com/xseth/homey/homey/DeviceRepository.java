@@ -4,12 +4,9 @@ import android.app.Application;
 import android.util.Log;
 
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
 
-import com.chaquo.python.PyObject;
 import com.xseth.homey.storage.DeviceDAO;
 import com.xseth.homey.storage.HomeyRoomDatabase;
-import com.xseth.homey.utils.HomeyAPI;
 
 import java.util.List;
 
