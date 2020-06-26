@@ -36,18 +36,29 @@ public class OAuth {
 
         @Override
         public void onAuthorizationError(int errorCode) {
-            utils.showConfirmationFailure(MainActivity.context, R.string.failure_authenticate);
             Log.e(TAG, "OAuth error: "+errorCode);
+
+            // Start thread to show login failed. Wait for some time to fix notification overlap
+            new Thread(() -> {
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException ignored) {}
+
+                utils.showConfirmationFailure(MainActivity.context, R.string.failure_authenticate);
+            }).start();
         }
     }
 
     public static void startOAuth(Context context) {
+        Log.d(TAG, "Start OAuth2 context");
+        mOAuthClient = OAuthClient.create(context);
+    }
+
+    public static void sendAuthoriziation(){
         HomeyAPI api = HomeyAPI.getAPI();
         String url = api.getLoginURL();
 
-        Log.d(TAG, "Start OAuth2 authentication via url: "+url);
-
-        mOAuthClient = OAuthClient.create(context);
+        Log.i(TAG, "Send authentication via url: "+url);
         mOAuthClient.sendAuthorizationRequest(Uri.parse(url), new MyOAuthCallback());
     }
 

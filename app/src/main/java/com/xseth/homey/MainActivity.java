@@ -25,7 +25,7 @@ import com.xseth.homey.utils.HomeyAPI;
 import com.xseth.homey.utils.OAuth;
 import com.xseth.homey.utils.utils;
 
-public class MainActivity extends FragmentActivity implements MenuItem.OnMenuItemClickListener {
+public class MainActivity extends FragmentActivity implements MenuItem.OnMenuItemClickListener, View.OnClickListener{
 
     // Logging tag
     public static final String TAG = "HomeyWear";
@@ -63,7 +63,7 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
         notif_icon = findViewById(R.id.notification_icon);
 
         // Start rainbow color thread
-        new ColorRunner(vOnOffBack).start();
+        ColorRunner.startColorRunner(vOnOffBack);
 
         // Verify if there is authentication/internet in background
         new Thread(() -> {
@@ -78,8 +78,8 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
 
                 else {
                     Log.w(TAG, "No session, authenticating!");
-                    utils.showConfirmationPhone(this.getApplicationContext(), R.string.authenticate);
                     OAuth.startOAuth(this);
+                    setNotification(R.string.login, R.drawable.ic_login_24px);
                 }
             }
             catch(Exception e) {
@@ -88,6 +88,13 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
                 // No internet connection, show notification
                 if (e.getLocalizedMessage().contains("AthomAPIConnectionError"))
                     setNotification(R.string.no_internet, R.drawable.ic_cloud_off);
+
+                // Contains invalid session, reauthorizing
+                else if (e.getLocalizedMessage().contains("AthomCloudAuthenticationError")){
+                    Log.w(TAG, "Invalid session, reauthorizing!");
+                    OAuth.startOAuth(this);
+                    setNotification(R.string.login, R.drawable.ic_login_24px);
+                }
             }
         }).start();
 
@@ -139,6 +146,16 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
     protected void onDestroy() {
         super.onDestroy();
         OAuth.stopOAuth();
+    }
+
+    @Override
+    public void onClick(View v) {
+        // Check if login notification is shown
+        if(notif_message.getText().toString() != getResources().getString(R.string.login))
+                return;
+
+        utils.showConfirmationPhone(this.getApplicationContext(), R.string.authenticate);
+        OAuth.sendAuthoriziation();
     }
 }
 

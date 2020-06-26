@@ -14,6 +14,7 @@
         android:layout_height="175dp"
         android:layout_gravity="center"
         android:background="@drawable/round_draw"
+        android:onClick="onClick"
         android:visibility="gone">
 
         <ImageView
