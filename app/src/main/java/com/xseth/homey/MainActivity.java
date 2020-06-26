@@ -1,7 +1,6 @@
 package com.xseth.homey;
 
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
@@ -79,10 +78,9 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
                 else {
                     Log.w(TAG, "No session, authenticating!");
                     OAuth.startOAuth(this);
-                    setNotification(R.string.login, R.drawable.ic_login_24px);
+                    setNotification(R.string.login, R.drawable.ic_login);
                 }
-            }
-            catch(Exception e) {
+            }catch(Exception e) {
                 Log.e(TAG, e.getLocalizedMessage());
 
                 // No internet connection, show notification
@@ -93,8 +91,11 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
                 else if (e.getLocalizedMessage().contains("AthomCloudAuthenticationError")){
                     Log.w(TAG, "Invalid session, reauthorizing!");
                     OAuth.startOAuth(this);
-                    setNotification(R.string.login, R.drawable.ic_login_24px);
+                    setNotification(R.string.login, R.drawable.ic_login);
                 }
+                // Unknown error
+                else
+                    setNotification(R.string.error, R.drawable.ic_error);
             }
         }).start();
 
@@ -136,6 +137,7 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
     public void setNotification(int message_id, int icon_id){
         notif_message.setText(message_id);
         notif_icon.setImageResource(icon_id);
+
         runOnUiThread(() -> {
             vOnOffList.setVisibility(View.GONE);
             notifications.setVisibility(View.VISIBLE);
