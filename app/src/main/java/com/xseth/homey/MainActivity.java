@@ -5,6 +5,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
@@ -16,19 +20,15 @@ import androidx.wear.widget.drawer.WearableDrawerLayout;
 
 import com.xseth.homey.adapters.DeviceViewModel;
 import com.xseth.homey.adapters.OnOffAdapter;
+import com.xseth.homey.utils.ColorRunner;
 import com.xseth.homey.utils.HomeyAPI;
 import com.xseth.homey.utils.OAuth;
 import com.xseth.homey.utils.utils;
-
-import static com.xseth.homey.utils.ColorRunner.startColorRunner;
 
 public class MainActivity extends FragmentActivity implements MenuItem.OnMenuItemClickListener {
 
     // Logging tag
     public static final String TAG = "HomeyWear";
-
-    public static final String NOTIF_MESSAGE = "com.xseth.message.NOTIF_MESSAGE";
-    public static final String NOTIF_ICON = "com.xseth.message.NOTIF_ICON";
 
     // General android context
     public static Context context;
@@ -38,6 +38,11 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
     private OnOffAdapter onOffAdapter;
     // Top drawer object
     private WearableActionDrawerView drawer;
+
+    private TextView notif_message;
+    private FrameLayout notifications;
+    private ImageView notif_icon;
+    private WearableRecyclerView vOnOffList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,11 +55,15 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
         // View used for rainbow background
         WearableDrawerLayout vOnOffBack = findViewById(R.id.onoff_back);
         // Recycler view containing devices
-        WearableRecyclerView vOnOffList = findViewById(R.id.onoff_list);
+        vOnOffList = findViewById(R.id.onoff_list);
         vOnOffList.requestFocus(); // Focus required for scrolling via hw-buttons
 
+        notifications = findViewById(R.id.notification);
+        notif_message = findViewById(R.id.notification_message);
+        notif_icon = findViewById(R.id.notification_icon);
+
         // Start rainbow color thread
-        startColorRunner(vOnOffBack);
+        new ColorRunner(vOnOffBack).start();
 
         // Verify if there is authentication/internet in background
         new Thread(() -> {
@@ -77,12 +86,8 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
                 Log.e(TAG, e.getLocalizedMessage());
 
                 // No internet connection, show notification
-                if (e.getLocalizedMessage().contains("AthomAPIConnectionError")){
-                    Intent intent = new Intent(this, NotificationActivity.class);
-                    intent.putExtra(NOTIF_MESSAGE, R.string.no_internet);
-                    intent.putExtra(NOTIF_ICON, R.drawable.ic_cloud_off);
-                    startActivity(intent);
-                }
+                if (e.getLocalizedMessage().contains("AthomAPIConnectionError"))
+                    setNotification(R.string.no_internet, R.drawable.ic_cloud_off);
             }
         }).start();
 
@@ -119,6 +124,15 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
         drawer.getController().closeDrawer();
 
         return true;
+    }
+
+    public void setNotification(int message_id, int icon_id){
+        notif_message.setText(message_id);
+        notif_icon.setImageResource(icon_id);
+        runOnUiThread(() -> {
+            vOnOffList.setVisibility(View.GONE);
+            notifications.setVisibility(View.VISIBLE);
+        });
     }
 
     @Override
