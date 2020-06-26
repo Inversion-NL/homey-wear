@@ -20,6 +20,10 @@ public class ColorRunner {
     // Array depicting rainbow colors
     public static int[] COLORS = new int[COLOR_SIZE];
 
+    /**
+     * Start the ColorRunner, thread which changes background color
+     * @param view View for which background color is updated
+     */
     public static void startColorRunner(View view){
         double jump = 360.0 / (COLOR_SIZE*1.0);
         for (int i = 0; i < COLORS.length; i++) {

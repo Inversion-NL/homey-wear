@@ -22,20 +22,32 @@ import java.net.URL;
 @Entity(tableName = "devices")
 public class Device {
 
+    // Logging TAG
     @Ignore
     public static final String TAG = "Device";
 
+    // Device ID
     @PrimaryKey
     @NonNull
     private String id;
+
+    // Device Name
     @NonNull
     private String name;
+
+    // Device on or off
     @NonNull
     private Boolean on;
 
+    // Device icon
     @Ignore
     private Bitmap icon;
 
+    /**
+     * Device constructor
+     * @param id device ID
+     * @param name device name
+     */
     public Device(String id, String name){
         this.id = id;
         this.name = name;
@@ -47,29 +59,58 @@ public class Device {
         }).start();
     }
 
+    /**
+     * Get device ID
+     * @return device ID
+     */
     @NonNull
     public String getId() {
         return id;
     }
 
+    /**
+     * Get the device name
+     * @return device name
+     */
     @NonNull
     public String getName() {
         return name;
     }
 
+    /**
+     * Get the Icon bitmap
+     * @return icon of device
+     */
     public Bitmap getIcon(){
         return this.icon;
     }
 
+    /**
+     * Set device ID
+     * @param id id to set
+     */
     public void setId(@NonNull String id) {
         this.id = id;
     }
 
+    /**
+     * Set name
+     * @param name name to set
+     */
     public void setName(@NonNull String name) {
         this.name = name;
     }
+
+    /**
+     * Set the icon Bitmap
+     * @param bitmap icon to set
+     */
     public void setIcon(Bitmap bitmap) { this.icon = bitmap; }
 
+    /**
+     * Set the device on or off status
+     * @param on on value to set
+     */
     public void setOn(Boolean on){ this.on = on; }
 
     /**
@@ -93,6 +134,10 @@ public class Device {
         return false;
     }
 
+    /**
+     * Return whether this device is on or off
+     * @return if device is on
+     */
     public Boolean isOn(){
         if(this.on == null)
             return true;
@@ -100,6 +145,9 @@ public class Device {
         return this.on;
     }
 
+    /**
+     * Turn device on or off based on on value
+     */
     public void turnOnOff(){
         HomeyAPI api = HomeyAPI.getAPI();
         // Wait if HomeyAPI is not yet authenticated
@@ -112,6 +160,11 @@ public class Device {
         DeviceRepository.getInstance().update(this);
     }
 
+    /**
+     * Parse Python Device object to Java Device object. This fetches device in background
+     * @param pyDevice Python Device object
+     * @return Java Device object
+     */
     public static Device parsePyDevice(PyObject pyDevice){
         Log.v(TAG, "Start parsing pyObject: "+pyDevice.toString());
 
@@ -120,7 +173,8 @@ public class Device {
 
         Device device = new Device(id, name);
 
-        final String strUrl = HomeyAPI.getAPI().getHomeyURL() + pyDevice.get("iconObj").asMap().get("url").toString();
+        final String strUrl = HomeyAPI.getAPI().getHomeyURL() +
+                pyDevice.get("iconObj").asMap().get("url").toString();
 
         // Fetch SVG icon in the background
         new Thread(() -> {
@@ -134,12 +188,16 @@ public class Device {
                 HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
                 //xpp.setInput(urlConnection.getInputStream(), "utf-8");
 
-                //Drawable drawable = VectorDrawable.createFromXml(MainActivity.context.getResources(), xpp);
+                //Drawable drawable = VectorDrawable.createFromXml(
+                // MainActivity.context.getResources(),
+                // xpp
+                // );
 
             } catch (MalformedURLException mue) {
                 Log.e(TAG, "Error invalid iconUrl: "+mue.getLocalizedMessage());
             } catch (IOException ioe) {
-                Log.e(TAG, "Error downloading icon from: "+strUrl+"\n"+ioe.getLocalizedMessage());
+                Log.e(TAG, "Error downloading icon from: " + strUrl+"\n" +
+                        ioe.getLocalizedMessage());
             } catch (XmlPullParserException e) {
                 e.printStackTrace();
             }

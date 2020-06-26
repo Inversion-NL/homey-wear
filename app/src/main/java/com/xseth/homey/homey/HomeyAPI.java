@@ -47,7 +47,10 @@ public class HomeyAPI {
     // List of favorite devices IDs
     private List<PyObject> deviceFavorites;
 
-    // Get singleton instance
+    /**
+     * Get HomeyAPI instance
+     * @return instance of HomeyAPI
+     */
     public synchronized static HomeyAPI getAPI() {
         // Wait for Thread to build HomeyAPI
         while(INSTANCE == null) {
@@ -69,6 +72,10 @@ public class HomeyAPI {
         return HomeyAPI.INSTANCE;
     }
 
+    /**
+     * HomeyAPI constructor
+     * @param ctx context for Python environment
+     */
     public HomeyAPI(Context ctx){
         // Retrieve the python environment
         Python py = getPython(ctx);
@@ -91,14 +98,25 @@ public class HomeyAPI {
         );
     }
 
+    /**
+     * Verify whether there is an authorized session
+     * @return if there is an authorized session
+     */
     public synchronized Boolean isLoggedIn(){
         return athomCloudAPI.callAttr("isLoggedIn").toBoolean();
     }
 
+    /**
+     * Verify whether there is authorization for the HomeyAPI
+     * @return if there is an authorized HomeyAPI
+     */
     public synchronized Boolean isHomeyAuthenticated(){
         return this.homeyAPI != null;
     }
 
+    /**
+     * Wait in thread for authorized HomeyAPI
+     */
     public synchronized void waitForHomeyAPI(){
         if (!this.isHomeyAuthenticated()) {
             synchronized (this) {
@@ -111,12 +129,20 @@ public class HomeyAPI {
         }
     }
 
+    /**
+     * Set an OAUTH2 session token
+     * @param token OAUTH2 session token
+     */
     public void setToken(String token){
         Log.i(TAG, "Stored OAuth token");
         athomCloudAPI.callAttr("authenticateWithAuthorizationCode", token);
         authenticateHomey();
     }
 
+    /**
+     * Get LoginURL used by OAUTH2
+     * @return login url used by OAUTH2
+     */
     public String getLoginURL() {
         return athomCloudAPI.callAttr(
                 "getLoginUrl",
@@ -124,10 +150,17 @@ public class HomeyAPI {
         ).toString();
     }
 
+    /**
+     * Get the URL pointing to the HomeyAPI
+     * @return URL of HomeyAPI
+     */
     public String getHomeyURL(){
         return homeyAPI.get("url").toString();
     }
 
+    /**
+     * Authenticate against the Homey
+     */
     public synchronized void authenticateHomey() {
         Log.d(TAG, "Start authenticating API");
         if (this.homeyAPI == null) {
@@ -150,6 +183,10 @@ public class HomeyAPI {
         }
     }
 
+    /**
+     * Get a list of favorite devices
+     * @return list of favorite devices
+     */
     public List<Device> getDevices(){
         List<Device> newList = new LinkedList<>();
         Map<String, PyObject> deviceMap = new HashMap<>();
@@ -209,7 +246,7 @@ public class HomeyAPI {
         return true;
     }
 
-        /**
+    /**
      * Retrieve Python instance, start environment if necessary
      * @param ctx ApplicationContext
      * @return Python instance

@@ -24,23 +24,20 @@ import com.xseth.homey.homey.HomeyAPI;
 import com.xseth.homey.utils.OAuth;
 import com.xseth.homey.utils.utils;
 
-public class MainActivity extends FragmentActivity implements MenuItem.OnMenuItemClickListener, View.OnClickListener{
+public class MainActivity extends FragmentActivity implements MenuItem.OnMenuItemClickListener,
+        View.OnClickListener{
 
     // Logging tag
     public static final String TAG = "HomeyWear";
-
     // General android context
     public static Context context;
     // deviceViewModel for holding device data
-    public static DeviceViewModel deviceViewModel;
-    // Adapter used for holding device data
-    private OnOffAdapter onOffAdapter;
-    // Top drawer object
+    private DeviceViewModel deviceViewModel;
+    // Bottom drawer object
     private WearableActionDrawerView drawer;
-
-    private TextView notif_message;
+    // Layout used in notifications
     private FrameLayout notifications;
-    private ImageView notif_icon;
+    // Recyclerview containing devices
     private WearableRecyclerView vOnOffList;
 
     @Override
@@ -51,17 +48,11 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // View used for notifications
+        notifications = findViewById(R.id.notification);
+
         // View used for rainbow background
         WearableDrawerLayout vOnOffBack = findViewById(R.id.onoff_back);
-        // Recycler view containing devices
-        vOnOffList = findViewById(R.id.onoff_list);
-        vOnOffList.requestFocus(); // Focus required for scrolling via hw-buttons
-
-        notifications = findViewById(R.id.notification);
-        notif_message = findViewById(R.id.notification_message);
-        notif_icon = findViewById(R.id.notification_icon);
-
-        // Start rainbow color thread
         ColorRunner.startColorRunner(vOnOffBack);
 
         // Verify if there is authentication/internet in background
@@ -99,11 +90,15 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
             }
         }).start();
 
+        // Recycler view containing devices
+        vOnOffList = findViewById(R.id.onoff_list);
+        vOnOffList.requestFocus(); // Focus required for scrolling via hw-buttons
+
         // use a linear layout manager
         vOnOffList.setLayoutManager(new LinearLayoutManager(this));
 
         // specify an adapter (see also next example)
-        onOffAdapter = new OnOffAdapter();
+        OnOffAdapter onOffAdapter = new OnOffAdapter();
         vOnOffList.setAdapter(onOffAdapter);
 
         // Add PagerSnapHelper to vOnOffList
@@ -112,11 +107,25 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
 
         // Get ViewModelProvider, and set LiveData devices list as input for adapter
         deviceViewModel = new ViewModelProvider(this).get(DeviceViewModel.class);
-        deviceViewModel.getDevices().observe(this, devices -> { onOffAdapter.setDevices(devices); });
+        deviceViewModel.getDevices().observe(this, devices -> {
+            onOffAdapter.setDevices(devices);
+        });
 
         // Top Navigation Drawer
         drawer = findViewById(R.id.action_drawer);
         drawer.setOnMenuItemClickListener(this);
+    }
+
+    @Override
+    public void onClick(View v) {
+        TextView message = findViewById(R.id.notification_message);
+
+        // Check if login notification is shown
+        if(!message.getText().toString().equals(getResources().getString(R.string.login)))
+            return;
+
+        utils.showConfirmationPhone(this.getApplicationContext(), R.string.authenticate);
+        OAuth.sendAuthoriziation();
     }
 
     @Override
@@ -134,9 +143,17 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
         return true;
     }
 
+    /**
+     * Show the notification fragment with selected text & icon
+     * @param message_id text to show in fragment
+     * @param icon_id icon to show in fragment
+     */
     public void setNotification(int message_id, int icon_id){
-        notif_message.setText(message_id);
-        notif_icon.setImageResource(icon_id);
+        TextView message = findViewById(R.id.notification_message);
+        ImageView icon = findViewById(R.id.notification_icon);
+
+        message.setText(message_id);
+        icon.setImageResource(icon_id);
 
         runOnUiThread(() -> {
             vOnOffList.setVisibility(View.GONE);
@@ -148,16 +165,6 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
     protected void onDestroy() {
         super.onDestroy();
         OAuth.stopOAuth();
-    }
-
-    @Override
-    public void onClick(View v) {
-        // Check if login notification is shown
-        if(notif_message.getText().toString() != getResources().getString(R.string.login))
-                return;
-
-        utils.showConfirmationPhone(this.getApplicationContext(), R.string.authenticate);
-        OAuth.sendAuthoriziation();
     }
 }
 

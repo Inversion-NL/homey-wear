@@ -24,38 +24,46 @@ interface RecyclerViewClickListener {
 }
 
 public class OnOffAdapter extends RecyclerView.Adapter<OnOffAdapter.viewHolder> implements RecyclerViewClickListener{
+
+    // Logging Tag
+    public static final String TAG = "OnOffAdapter";
     // Array of data objects related to adapter
     private List<Device> devices;
-    // Logging Tag
-    private static final String TAG = "OnOffAdapter";
 
-    // Provide a reference to the views for each data item
-    // Complex data items may need more than one view per item, and
-    // you provide access to all the views for a data item in a view holder
+    /**
+     * Class used to contain view for displaying devices
+     */
     public static class viewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        // each data item is just a string in this case
+        // Device fragment
         public LinearLayout onOffFragment;
+        // View for showing device name
         public TextView onOffTitle;
+        // View used for showing device icon
         public ImageView onOffIcon;
+        // Click listener for recycle view
         private RecyclerViewClickListener mListener;
 
-        public viewHolder(LinearLayout v, RecyclerViewClickListener listener) {
-            super(v);
-            onOffFragment = v;
-            onOffTitle = v.findViewById(R.id.onOffTitle);
-            onOffIcon = v.findViewById(R.id.onOffIcon);
+        /**
+         * ViewHolder constructor
+         * @param view View layout
+         * @param listener instance of listener
+         */
+        public viewHolder(LinearLayout view, RecyclerViewClickListener listener) {
+            super(view);
+            onOffFragment = view;
+            onOffTitle = view.findViewById(R.id.onOffTitle);
+            onOffIcon = view.findViewById(R.id.onOffIcon);
             mListener = listener;
 
-            v.setOnClickListener(this);
+            view.setOnClickListener(this);
         }
 
         @Override
-        public void onClick(View v) {
-            mListener.onClick(v, getAdapterPosition());
+        public void onClick(View view) {
+            mListener.onClick(view, getAdapterPosition());
         }
     }
 
-    // Create new views (invoked by the layout manager)
     @Override
     public OnOffAdapter.viewHolder onCreateViewHolder(ViewGroup parent,
                                                      int viewType) {
@@ -102,6 +110,10 @@ public class OnOffAdapter extends RecyclerView.Adapter<OnOffAdapter.viewHolder> 
         }
     }
 
+    /**
+     * Set new list of devices then update view
+     * @param devices devices list to set
+     */
     public void setDevices(List<Device> devices){
         if(devices.size() > 0) {
             this.devices = devices;

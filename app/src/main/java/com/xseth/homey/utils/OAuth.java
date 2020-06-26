@@ -9,15 +9,18 @@ import com.xseth.homey.MainActivity;
 import com.xseth.homey.R;
 import com.xseth.homey.homey.HomeyAPI;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 public class OAuth {
 
+    // Logging tag
     public static final String TAG = "OAuth";
+    // OAuthClient instance
     private static OAuthClient mOAuthClient;
 
+    /**
+     * Class for handling OAUTH2 callbacks
+     */
     private static class MyOAuthCallback extends OAuthClient.Callback {
+
         @Override
         public void onAuthorizationResponse(Uri requestUrl, Uri responseUrl) {
             Log.i(TAG, "Received onAuth response");
@@ -25,11 +28,12 @@ public class OAuth {
 
             utils.showConfirmationSuccess(MainActivity.context, R.string.success_authenticate);
 
-            // Set APItoken in seperate thread
+            // Set APItoken in separate thread
             HomeyAPI.getAPI().setToken(token);
-            Runnable runnable = () -> HomeyAPI.getAPI().setToken(token);
-            ExecutorService executor = Executors.newCachedThreadPool();
-            executor.submit(runnable);
+            new Thread(() -> {
+                HomeyAPI.getAPI().setToken(token);
+            }).start();
+
             OAuth.stopOAuth();
         }
 
@@ -48,11 +52,18 @@ public class OAuth {
         }
     }
 
+    /**
+     * Start an OAUTH2 context
+     * @param context context to create OAUTH2 client in
+     */
     public static void startOAuth(Context context) {
         Log.d(TAG, "Start OAuth2 context");
         mOAuthClient = OAuthClient.create(context);
     }
 
+    /**
+     * Start OAUTH2 authorization procedure
+     */
     public static void sendAuthoriziation(){
         HomeyAPI api = HomeyAPI.getAPI();
         String url = api.getLoginURL();
@@ -61,5 +72,10 @@ public class OAuth {
         mOAuthClient.sendAuthorizationRequest(Uri.parse(url), new MyOAuthCallback());
     }
 
-    public static void stopOAuth(){ if (mOAuthClient != null) mOAuthClient.destroy();}
+    /**
+     * Destroy OAUTH instance
+     */
+    public static void stopOAuth(){
+        if (mOAuthClient != null) mOAuthClient.destroy();
+    }
 }
