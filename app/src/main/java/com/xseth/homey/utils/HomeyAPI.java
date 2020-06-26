@@ -94,11 +94,7 @@ public class HomeyAPI {
     }
 
     public synchronized Boolean isLoggedIn(){
-        try {
-            return athomCloudAPI.callAttrThrows("isLoggedIn").toBoolean();
-        } catch (Throwable e) {
-            return false;
-        }
+        return athomCloudAPI.callAttr("isLoggedIn").toBoolean();
     }
 
     public synchronized Boolean isHomeyAuthenticated(){

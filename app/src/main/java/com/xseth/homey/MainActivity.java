@@ -1,7 +1,9 @@
 package com.xseth.homey;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 
 import androidx.fragment.app.FragmentActivity;
@@ -24,6 +26,10 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
 
     // Logging tag
     public static final String TAG = "HomeyWear";
+
+    public static final String NOTIF_MESSAGE = "com.xseth.message.NOTIF_MESSAGE";
+    public static final String NOTIF_ICON = "com.xseth.message.NOTIF_ICON";
+
     // General android context
     public static Context context;
     // deviceViewModel for holding device data
@@ -46,22 +52,37 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
         // Recycler view containing devices
         WearableRecyclerView vOnOffList = findViewById(R.id.onoff_list);
         vOnOffList.requestFocus(); // Focus required for scrolling via hw-buttons
-        
+
         // Start rainbow color thread
         startColorRunner(vOnOffBack);
 
-        // Verify if there is authentication in background
+        // Verify if there is authentication/internet in background
         new Thread(() -> {
 
-            // Start the HomeyAPI
-            HomeyAPI api = HomeyAPI.buildHomeyAPI(this);
+            try {
 
-            if(api.isLoggedIn())
-                api.authenticateHomey();
+                // Start the HomeyAPI
+                HomeyAPI api = HomeyAPI.buildHomeyAPI(this);
 
-            else {
-                utils.showConfirmationPhone(MainActivity.context, R.string.authenticate);
-                OAuth.startOAuth(this);
+                if (api.isLoggedIn())
+                    api.authenticateHomey();
+
+                else {
+                    Log.w(TAG, "No session, authenticating!");
+                    utils.showConfirmationPhone(this.getApplicationContext(), R.string.authenticate);
+                    OAuth.startOAuth(this);
+                }
+            }
+            catch(Exception e) {
+                Log.e(TAG, e.getLocalizedMessage());
+
+                // No internet connection, show notification
+                if (e.getLocalizedMessage().contains("AthomAPIConnectionError")){
+                    Intent intent = new Intent(this, NotificationActivity.class);
+                    intent.putExtra(NOTIF_MESSAGE, R.string.no_internet);
+                    intent.putExtra(NOTIF_ICON, R.drawable.ic_cloud_off);
+                    startActivity(intent);
+                }
             }
         }).start();
 

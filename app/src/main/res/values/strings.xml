@@ -6,4 +6,5 @@
     <string name="success_authenticate">Login via phone succeeded</string>
     <string name="failure_authenticate">Login via phone failed</string>
     <string name="refresh_favorites">Refresh device favorites</string>
+    <string name="no_internet">No internet</string>
 </resources>
