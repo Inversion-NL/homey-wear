@@ -17,9 +17,7 @@
             android:id="@+id/onOffIcon"
             android:layout_width="85dp"
             android:layout_height="85dp"
-            android:layout_gravity="center"
-            android:src="@drawable/common_google_signin_btn_icon_dark"
-            tools:src="@tools:sample/avatars" />
+            android:layout_gravity="center" />
 
         <TextView
             android:id="@+id/onOffTitle"
