@@ -35,6 +35,11 @@ public class HomeyAPI {
             "homey.flow.start",
             "homey.flow.readonly"
     };
+    // List of supported capabilities
+    public static final String[] CAPABILITIES = {
+            "onoff",
+            "speaker_playing"
+    };
 
     // Instance HomeyAPI for singleton
     private static volatile HomeyAPI INSTANCE;
@@ -218,7 +223,7 @@ public class HomeyAPI {
         PyObject ret = devicesManager.callAttr(
                 "setCapabilityValue",
                 new Kwarg("deviceId", device.getId()),
-                new Kwarg("capabilityId", "onoff"),
+                new Kwarg("capabilityId", device.getCapability()),
                 new Kwarg("value", value)
         );
     }
@@ -230,14 +235,15 @@ public class HomeyAPI {
      */
     public boolean isOn(Device device) {
         try {
+            String capability = device.getCapability();
             PyObject pyDevice = devicesManager.callAttrThrows(
                     "getDevice",
                     new Kwarg("id", device.getId())
             );
 
             Map<PyObject, PyObject> capabilities = pyDevice.get("capabilitiesObj").asMap();
-            if (capabilities.containsKey("onoff")) {
-                return capabilities.get("onoff").asMap().get("value").toBoolean();
+            if (capabilities.containsKey(capability)) {
+                return capabilities.get(capability).asMap().get("value").toBoolean();
             } else {
                 return true;
             }

@@ -2,28 +2,21 @@ package com.xseth.homey.homey;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.VectorDrawable;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
-import androidx.room.TypeConverters;
 
 import com.chaquo.python.PyObject;
-import com.xseth.homey.MainActivity;
-
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.LinkedList;
+import java.util.List;
 
 @Entity(tableName = "devices")
 public class Device {
@@ -41,6 +34,10 @@ public class Device {
     @NonNull
     private String name;
 
+    // Device capability that is controlled
+    @NonNull
+    private String capability;
+
     // Device on or off
     @NonNull
     private Boolean on;
@@ -57,6 +54,7 @@ public class Device {
         this.id = id;
         this.name = name;
         this.on = true;
+        this.capability = "onoff"; // fallback capability
 
         // Check whether device is on or off
         new Thread(() -> {
@@ -89,6 +87,11 @@ public class Device {
     public Bitmap getIcon(){
         return this.icon;
     }
+
+    @NonNull
+    public String getCapability() { return capability; }
+
+    public void setCapability(@NonNull String capability ) { this.capability = capability; }
 
     /**
      * Set device ID
@@ -181,20 +184,21 @@ public class Device {
         final String iconId = pyDevice.get("iconObj").asMap().get("id").toString();
         final String strUrl = HomeyAPI.ICON_URL + iconId + "-128.png"; // 128 icon size
 
-        // Fetch SVG icon in the background
-        new Thread(() -> {
-            try{
-                URL url = new URL(strUrl);
+        // Set capability that is turned on/off, priority capability is in order
+        // of capabilities in HomeyAPI.CAPABILITIES
+        for (String capability : HomeyAPI.CAPABILITIES){
 
-                URLConnection conn = url.openConnection();
-                device.setIcon(BitmapFactory.decodeStream(conn.getInputStream()));
-            } catch (MalformedURLException mue) {
-                Log.e(TAG, "Error invalid iconUrl: "+mue.getLocalizedMessage());
-            } catch (IOException ioe) {
-                Log.e(TAG, "Error downloading icon from: " + strUrl+"\n" +
-                        ioe.getLocalizedMessage());
+            // Change Capabilities to List of Strings to check for contains
+            List<String> capStrings = new LinkedList<>();
+            for(PyObject cap : pyDevice.get("capabilities").asList())
+                capStrings.add(cap.toString());
+
+            // Set capability, fallback is onoff capability
+            if(capStrings.contains(capability)){
+                device.setCapability(capability);
+                break;
             }
-        }).start();
+        }
 
         return device;
     }
