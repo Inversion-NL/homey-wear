@@ -24,6 +24,8 @@ public class HomeyAPI {
     public static final String CLIENT_SECRET = BuildConfig.ATHOM_CLIENT_SECRET;
     // ReturnURL for OAuth2
     public static final String RETURN_URL = "https://wear.googleapis.com/3p_auth/com.xseth.homey";
+    // URL for Icon CDN
+    public static final String ICON_URL = "https://icons-cdn.athom.com/";
     // List of OAuth2 scopes used in Athom Homey API
     public static final String[] SCOPES = {
             "account.homeys.readonly",

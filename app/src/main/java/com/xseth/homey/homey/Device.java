@@ -1,14 +1,19 @@
 package com.xseth.homey.homey;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.VectorDrawable;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
+import androidx.room.TypeConverters;
 
 import com.chaquo.python.PyObject;
+import com.xseth.homey.MainActivity;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -18,6 +23,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 
 @Entity(tableName = "devices")
 public class Device {
@@ -40,7 +46,6 @@ public class Device {
     private Boolean on;
 
     // Device icon
-    @Ignore
     private Bitmap icon;
 
     /**
@@ -173,33 +178,21 @@ public class Device {
 
         Device device = new Device(id, name);
 
-        final String strUrl = HomeyAPI.getAPI().getHomeyURL() +
-                pyDevice.get("iconObj").asMap().get("url").toString();
+        final String iconId = pyDevice.get("iconObj").asMap().get("id").toString();
+        final String strUrl = HomeyAPI.ICON_URL + iconId + "-128.png"; // 128 icon size
 
         // Fetch SVG icon in the background
         new Thread(() -> {
             try{
                 URL url = new URL(strUrl);
 
-                XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
-                factory.setNamespaceAware(true);
-                XmlPullParser xpp = factory.newPullParser();
-
-                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-                //xpp.setInput(urlConnection.getInputStream(), "utf-8");
-
-                //Drawable drawable = VectorDrawable.createFromXml(
-                // MainActivity.context.getResources(),
-                // xpp
-                // );
-
+                URLConnection conn = url.openConnection();
+                device.setIcon(BitmapFactory.decodeStream(conn.getInputStream()));
             } catch (MalformedURLException mue) {
                 Log.e(TAG, "Error invalid iconUrl: "+mue.getLocalizedMessage());
             } catch (IOException ioe) {
                 Log.e(TAG, "Error downloading icon from: " + strUrl+"\n" +
                         ioe.getLocalizedMessage());
-            } catch (XmlPullParserException e) {
-                e.printStackTrace();
             }
         }).start();
 
