@@ -200,6 +200,20 @@ public class Device {
             }
         }
 
+        // Fetch  icon in the background
+        try{
+            URL url = new URL(strUrl);
+
+            URLConnection conn = url.openConnection();
+            device.setIcon(BitmapFactory.decodeStream(conn.getInputStream()));
+            DeviceRepository.getInstance().update(device);
+        } catch (MalformedURLException mue) {
+            Log.e(TAG, "Error invalid iconUrl: "+mue.getLocalizedMessage());
+        } catch (IOException ioe) {
+            Log.e(TAG, "Error downloading icon from: " + strUrl+"\n" +
+                    ioe.getLocalizedMessage());
+        }
+
         return device;
     }
 }
