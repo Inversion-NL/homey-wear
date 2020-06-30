@@ -185,21 +185,32 @@ public class Device {
 
         // Set capability that is turned on/off, priority capability is in order
         // of capabilities in HomeyAPI.CAPABILITIES
-        for (String capability : HomeyAPI.CAPABILITIES){
+        List<String> homeyCapabilities = Arrays.asList(HomeyAPI.CAPABILITIES);
+        Map<PyObject, PyObject> capabilities = pyDevice.get("capabilitiesObj").asMap();
 
-            // Change Capabilities to List of Strings to check for contains
-            List<String> capStrings = new LinkedList<>();
-            for(PyObject cap : pyDevice.get("capabilities").asList())
-                capStrings.add(cap.toString());
+        for(PyObject capabilityId : capabilities.keySet()){
+            Timber.d("Parse PyDevice, verifying capability: %s", capabilityId.toString());
 
-            // Set capability, fallback is onoff capability
-            if(capStrings.contains(capability)){
-                device.setCapability(capability);
+            // Capability is in capabilities whitelist
+            if(homeyCapabilities.contains(capabilityId.toString())){
+                Timber.d("Parse PyDevice, found capability match: %s", capabilityId.toString());
+
+                boolean status = true;
+                PyObject pyStatus = capabilities.get(capabilityId).asMap().get("value");
+
+                // if capability is button then value is always null, so for button status is
+                // always true
+                if(pyStatus != null)
+                    status = pyStatus.toBoolean();
+
+                device.setCapability(capabilityId.toString());
+                device.setOn(status);
+
                 break;
             }
         }
 
-        // Fetch  icon in the background
+        // Fetch icon
         try{
             URL url = new URL(strUrl);
 

@@ -170,8 +170,8 @@ public class HomeyAPI {
      */
     public synchronized void authenticateHomey() {
         Timber.i("Start authenticating API");
+
         if (this.homeyAPI == null) {
-            Timber.d("Start authenticating API (Thread)");
             PyObject user = athomCloudAPI.callAttr("getUser");
             PyObject homey = user.callAttr("getFirstHomey");
 
