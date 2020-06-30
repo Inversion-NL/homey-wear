@@ -84,7 +84,13 @@ public class DeviceRepository {
 
             Map<PyObject, PyObject> capabilities = pyDevice.get("capabilitiesObj").asMap();
             if (capabilities.containsKey(capability)) {
-                status = capabilities.get(capability).asMap().get("value").toBoolean();
+                PyObject pyStatus = capabilities.get(capability).asMap().get("value");
+
+                // If device is button, status is always null
+                if(pyStatus != null)
+                    status = capabilities.get(capability).asMap().get("value").toBoolean();
+                else
+                    status = true;
             }
 
             // Verify if status is different than stored value

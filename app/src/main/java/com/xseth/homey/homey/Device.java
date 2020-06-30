@@ -14,8 +14,10 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import timber.log.Timber;
 
@@ -142,6 +144,14 @@ public class Device {
     }
 
     /**
+     * Return whether this device contains button capability
+     * @return if device is a button
+     */
+    public boolean isButton(){
+        return this.capability.equals("button");
+    }
+
+    /**
      * Turn device on or off based on on value
      */
     public void turnOnOff(){
@@ -149,10 +159,11 @@ public class Device {
         // Wait if HomeyAPI is not yet authenticated
         api.waitForHomeyAPI();
 
-        boolean onoff = !this.on;
-        api.turnOnOff(this, onoff);
+        // Button remains true
+        if(!isButton())
+            this.on = !this.on;
 
-        this.setOn(onoff);
+        api.turnOnOff(this);
         DeviceRepository.getInstance().update(this);
     }
 

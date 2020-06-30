@@ -37,6 +37,7 @@ public class HomeyAPI {
     // List of supported capabilities
     public static final String[] CAPABILITIES = {
             "onoff",
+            "button",
             "speaker_playing"
     };
 
@@ -237,12 +238,12 @@ public class HomeyAPI {
      * Turn device on or off
      * @param device device to turn on or off
      */
-    public void turnOnOff(Device device, boolean value){
+    public void turnOnOff(Device device){
         PyObject ret = devicesManager.callAttr(
                 "setCapabilityValue",
                 new Kwarg("deviceId", device.getId()),
                 new Kwarg("capabilityId", device.getCapability()),
-                new Kwarg("value", value)
+                new Kwarg("value", device.isOn())
         );
     }
 

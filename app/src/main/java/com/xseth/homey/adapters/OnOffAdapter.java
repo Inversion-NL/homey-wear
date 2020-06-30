@@ -24,7 +24,8 @@ interface RecyclerViewClickListener {
     void onClick(View view, int position);
 }
 
-public class OnOffAdapter extends RecyclerView.Adapter<OnOffAdapter.viewHolder> implements RecyclerViewClickListener{
+public class OnOffAdapter extends RecyclerView.Adapter<OnOffAdapter.viewHolder>
+        implements RecyclerViewClickListener{
 
     // Array of data objects related to adapter
     private List<Device> devices;
@@ -98,7 +99,16 @@ public class OnOffAdapter extends RecyclerView.Adapter<OnOffAdapter.viewHolder> 
 
             int color_id = device.isOn() ? R.color.device_on : R.color.device_off;
             int color = view.getContext().getResources().getColor(color_id);
-            view.getBackground().setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.MULTIPLY));
+
+            view.getBackground().setColorFilter(new PorterDuffColorFilter(
+                    color, PorterDuff.Mode.MULTIPLY
+            ));
+
+            // If device is button, background never changes so notify via Toast message
+            if(device.isButton()) {
+                String text = view.getResources().getString(R.string.button_press, device.getName());
+                Toast.makeText(view.getContext(), text, Toast.LENGTH_LONG).show();
+            }
 
         }catch (Exception e){
             Timber.e(e, "Failed to turn onoff");

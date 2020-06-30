@@ -8,4 +8,5 @@
     <string name="no_internet">Geen internet</string>
     <string name="error">Onbekende fout!</string>
     <string name="login">Geen sessie, login!</string>
+    <string name="button_press">%1$s is ingedrukt</string>
 </resources>
