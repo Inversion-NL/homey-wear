@@ -1,7 +1,6 @@
 package com.xseth.homey.homey;
 
 import android.content.Context;
-import android.util.Log;
 
 import com.chaquo.python.Kwarg;
 import com.chaquo.python.PyObject;
@@ -14,10 +13,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import timber.log.Timber;
+
 public class HomeyAPI {
 
-    // Debug log
-    public static final String TAG = "HomeyAPI";
     // Athom Homey client ID for accessing API
     public static final String CLIENT_ID = BuildConfig.ATHOM_CLIENT_ID;
     // Athom Homey client secret for accessing API
@@ -141,7 +140,7 @@ public class HomeyAPI {
      * @param token OAUTH2 session token
      */
     public void setToken(String token){
-        Log.i(TAG, "Stored OAuth token");
+        Timber.i("Stored OAuth token");
         athomCloudAPI.callAttr("authenticateWithAuthorizationCode", token);
         authenticateHomey();
     }
@@ -169,9 +168,9 @@ public class HomeyAPI {
      * Authenticate against the Homey
      */
     public synchronized void authenticateHomey() {
-        Log.i(TAG, "Start authenticating API");
+        Timber.i("Start authenticating API");
         if (this.homeyAPI == null) {
-            Log.d(TAG, "Start authenticating API (Thread)");
+            Timber.d("Start authenticating API (Thread)");
             PyObject user = athomCloudAPI.callAttr("getUser");
             PyObject homey = user.callAttr("getFirstHomey");
 
@@ -179,7 +178,7 @@ public class HomeyAPI {
             devicesManager = homeyAPI.get("devices");
             usersManager = homeyAPI.get("users");
 
-            Log.i(TAG, "Authenticated against HomeyAPI: " + homey.toString());
+            Timber.i("Authenticated against HomeyAPI: %s", homey.toString());
 
             // Notify all threads that the homeyAPI is authenticated
             synchronized (this){
@@ -218,7 +217,6 @@ public class HomeyAPI {
      * @return map of favorite Pyobject devices with id as key
      */
     public Map<String, PyObject> getDevicesPyObject(){
-        List<Device> newList = new LinkedList<>();
         Map<String, PyObject> deviceMap = new HashMap<>();
 
         // retrieve favorites list from user if undefined
@@ -268,7 +266,7 @@ public class HomeyAPI {
                 return true;
             }
         } catch (Throwable throwable) {
-            Log.e(TAG, "Device<"+device+">.isOn error: "+throwable.getLocalizedMessage());
+            Timber.e(throwable, "Device<%s>.isOn error", device);
         }
 
         return true;

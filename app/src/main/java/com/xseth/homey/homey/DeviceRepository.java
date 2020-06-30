@@ -1,7 +1,6 @@
 package com.xseth.homey.homey;
 
 import android.app.Application;
-import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 
@@ -12,9 +11,10 @@ import com.xseth.homey.storage.HomeyRoomDatabase;
 import java.util.List;
 import java.util.Map;
 
+import timber.log.Timber;
+
 public class DeviceRepository {
-    // Logging tag
-    private static final String TAG = "DeviceRepository";
+
     // DeviceRepository instance
     private static DeviceRepository instance;
     // Device DAO for room access
@@ -58,7 +58,7 @@ public class DeviceRepository {
     public synchronized LiveData<List<Device>> getAllDevices(boolean force) {
         new Thread(() -> {
             if(!deviceDAO.hasDevices() || force) {
-                Log.i(TAG, "No saved devices, gathering");
+                Timber.i("No saved devices, gathering");
                 HomeyAPI api = HomeyAPI.getAPI();
 
                 // Wait for HomeyAPI to be ready
@@ -74,7 +74,7 @@ public class DeviceRepository {
     }
 
     public void refreshDeviceStatuses(){
-        Log.i(TAG, "Refreshing device statuses");
+        Timber.i("Refreshing device statuses");
         Map<String, PyObject> pyDevices = HomeyAPI.getAPI().getDevicesPyObject();
 
         for(Device device : this.devices.getValue()){

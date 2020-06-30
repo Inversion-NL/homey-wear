@@ -3,16 +3,15 @@ package com.xseth.homey.utils;
 import android.content.Context;
 import android.net.Uri;
 import android.support.wearable.authentication.OAuthClient;
-import android.util.Log;
 
 import com.xseth.homey.MainActivity;
 import com.xseth.homey.R;
 import com.xseth.homey.homey.HomeyAPI;
 
+import timber.log.Timber;
+
 public class OAuth {
 
-    // Logging tag
-    public static final String TAG = "OAuth";
     // OAuthClient instance
     private static OAuthClient mOAuthClient;
 
@@ -23,7 +22,7 @@ public class OAuth {
 
         @Override
         public void onAuthorizationResponse(Uri requestUrl, Uri responseUrl) {
-            Log.i(TAG, "Received onAuth response");
+            Timber.i("Received onAuth response");
             String token = responseUrl.getQueryParameter("code");
 
             utils.showConfirmationSuccess(MainActivity.context, R.string.success_authenticate);
@@ -39,7 +38,7 @@ public class OAuth {
 
         @Override
         public void onAuthorizationError(int errorCode) {
-            Log.e(TAG, "OAuth error: "+errorCode);
+            Timber.e("OAuth error: %d", errorCode);
 
             // Start thread to show login failed. Wait for some time to fix notification overlap
             new Thread(() -> {
@@ -57,7 +56,7 @@ public class OAuth {
      * @param context context to create OAUTH2 client in
      */
     public static void startOAuth(Context context) {
-        Log.d(TAG, "Start OAuth2 context");
+        Timber.d("Start OAuth2 context");
         mOAuthClient = OAuthClient.create(context);
     }
 
@@ -68,7 +67,7 @@ public class OAuth {
         HomeyAPI api = HomeyAPI.getAPI();
         String url = api.getLoginURL();
 
-        Log.i(TAG, "Send authentication via url: "+url);
+        Timber.i("Send authentication via url: %s", url);
         mOAuthClient.sendAuthorizationRequest(Uri.parse(url), new MyOAuthCallback());
     }
 

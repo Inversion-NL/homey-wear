@@ -3,7 +3,6 @@ package com.xseth.homey.adapters;
 import android.annotation.SuppressLint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,14 +18,14 @@ import com.xseth.homey.homey.Device;
 
 import java.util.List;
 
+import timber.log.Timber;
+
 interface RecyclerViewClickListener {
     void onClick(View view, int position);
 }
 
 public class OnOffAdapter extends RecyclerView.Adapter<OnOffAdapter.viewHolder> implements RecyclerViewClickListener{
 
-    // Logging Tag
-    public static final String TAG = "OnOffAdapter";
     // Array of data objects related to adapter
     private List<Device> devices;
 
@@ -71,7 +70,6 @@ public class OnOffAdapter extends RecyclerView.Adapter<OnOffAdapter.viewHolder> 
         LinearLayout v = (LinearLayout) LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.onoff_fragment, parent, false);
 
-        Log.d(TAG, "onCreateViewHolder");
         return new viewHolder(v, this);
     }
 
@@ -79,7 +77,6 @@ public class OnOffAdapter extends RecyclerView.Adapter<OnOffAdapter.viewHolder> 
     @SuppressLint("ResourceAsColor")
     @Override
     public void onBindViewHolder(viewHolder holder, int position) {
-        Log.d(TAG, "onBindVIewHolder");
         Device device = devices.get(position);
 
         holder.onOffIcon.setImageBitmap(device.getIcon());
@@ -104,7 +101,7 @@ public class OnOffAdapter extends RecyclerView.Adapter<OnOffAdapter.viewHolder> 
             view.getBackground().setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.MULTIPLY));
 
         }catch (Exception e){
-            Log.e(TAG, "Failed to turn onoff: "+e.getLocalizedMessage());
+            Timber.e(e, "Failed to turn onoff");
             // Show popup if fail to turn on or off
             Toast.makeText(view.getContext(), R.string.fail_turnonoff, Toast.LENGTH_LONG).show();
         }

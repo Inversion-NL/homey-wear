@@ -2,7 +2,6 @@ package com.xseth.homey.homey;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.room.Entity;
@@ -17,6 +16,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.LinkedList;
 import java.util.List;
+
+import timber.log.Timber;
 
 @Entity(tableName = "devices")
 public class Device {
@@ -161,7 +162,7 @@ public class Device {
      * @return Java Device object
      */
     public static Device parsePyDevice(PyObject pyDevice){
-        Log.v(TAG, "Start parsing pyObject: "+pyDevice.toString());
+        Timber.v("Start parsing pyObject: %s", pyDevice.toString());
 
         String id = pyDevice.get("id").toString();
         String name = pyDevice.get("name").toString();
@@ -195,10 +196,9 @@ public class Device {
             device.setIcon(BitmapFactory.decodeStream(conn.getInputStream()));
             DeviceRepository.getInstance().update(device);
         } catch (MalformedURLException mue) {
-            Log.e(TAG, "Error invalid iconUrl: "+mue.getLocalizedMessage());
+            Timber.e(mue, "Error invalid iconUrl");
         } catch (IOException ioe) {
-            Log.e(TAG, "Error downloading icon from: " + strUrl+"\n" +
-                    ioe.getLocalizedMessage());
+            Timber.e(ioe,"Error downloading icon from: %s", strUrl);
         }
 
         return device;

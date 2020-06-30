@@ -83,6 +83,9 @@ dependencies {
     // UI
     implementation "com.google.android.material:material:$rootProject.materialVersion"
 
+    // Logging
+    implementation 'com.jakewharton.timber:timber:4.7.1'
+
     // Testing
     androidTestImplementation "androidx.arch.core:core-testing:$rootProject.coreTestingVersion"
 }

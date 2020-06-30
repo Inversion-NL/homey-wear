@@ -1,18 +1,17 @@
 package com.xseth.homey.utils;
 
 import android.graphics.Color;
-import android.util.Log;
 import android.view.View;
 
 import java.util.Random;
+
+import timber.log.Timber;
 
 /**
  * Class for updating background color of views
  */
 public class ColorRunner {
 
-    // Logger TAG
-    public static final String TAG = "ColorRunner";
     // Amount of time in MS to wait between color switches
     public static final int SLEEP = 500;
     // Resolution of color possibilities
@@ -37,7 +36,7 @@ public class ColorRunner {
             int max = COLORS.length;
             int index = new Random().nextInt(COLOR_SIZE-1);
 
-            Log.d(TAG, "Starting colorRun");
+            Timber.d("Starting colorRun");
 
             do {
                 color = COLORS[index];

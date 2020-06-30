@@ -2,7 +2,6 @@ package com.xseth.homey.storage;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.util.Log;
 
 import androidx.room.TypeConverter;
 
@@ -20,7 +19,6 @@ public class BitmapConverter {
         if(bitmap == null)
             return new byte[0];
 
-        Log.d("Converter", "converting: "+bitmap.toString());
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.PNG, 0, stream);
         return stream.toByteArray();

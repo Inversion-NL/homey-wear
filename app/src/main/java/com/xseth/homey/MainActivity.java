@@ -2,7 +2,6 @@ package com.xseth.homey;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -19,18 +18,17 @@ import androidx.wear.widget.drawer.WearableDrawerLayout;
 
 import com.xseth.homey.adapters.DeviceViewModel;
 import com.xseth.homey.adapters.OnOffAdapter;
-import com.xseth.homey.homey.Device;
 import com.xseth.homey.homey.DeviceRepository;
 import com.xseth.homey.utils.ColorRunner;
 import com.xseth.homey.homey.HomeyAPI;
 import com.xseth.homey.utils.OAuth;
 import com.xseth.homey.utils.utils;
 
+import timber.log.Timber;
+
 public class MainActivity extends FragmentActivity implements MenuItem.OnMenuItemClickListener,
         View.OnClickListener{
 
-    // Logging tag
-    public static final String TAG = "HomeyWear";
     // General android context
     public static Context context;
     // deviceViewModel for holding device data
@@ -45,6 +43,10 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         context = this.getApplicationContext();
+
+        // Configure Timber logging
+        if (BuildConfig.DEBUG)
+            Timber.plant(new Timber.DebugTree());
 
         // Create view
         super.onCreate(savedInstanceState);
@@ -71,12 +73,12 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
                     DeviceRepository.getInstance().refreshDeviceStatuses();
 
                 }else {
-                    Log.w(TAG, "No session, authenticating!");
+                    Timber.w("No session, authenticating!");
                     OAuth.startOAuth(this);
                     setNotification(R.string.login, R.drawable.ic_login);
                 }
             }catch(Exception e) {
-                Log.e(TAG, e.getLocalizedMessage());
+                Timber.e(e);
 
                 // No internet connection, show notification
                 if (e.getLocalizedMessage().contains("AthomAPIConnectionError"))
@@ -84,7 +86,7 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
 
                 // Contains invalid session, reauthorizing
                 else if (e.getLocalizedMessage().contains("AthomCloudAuthenticationError")){
-                    Log.w(TAG, "Invalid session, reauthorizing!");
+                    Timber.w("Invalid session, reauthorizing!");
                     OAuth.startOAuth(this);
                     setNotification(R.string.login, R.drawable.ic_login);
                 }
