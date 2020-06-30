@@ -30,7 +30,6 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".NotificationActivity" />
         <activity android:name="android.support.wearable.activity.ConfirmationActivity" />
     </application>
 
