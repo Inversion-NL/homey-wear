@@ -5,10 +5,12 @@ import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 
+import com.chaquo.python.PyObject;
 import com.xseth.homey.storage.DeviceDAO;
 import com.xseth.homey.storage.HomeyRoomDatabase;
 
 import java.util.List;
+import java.util.Map;
 
 public class DeviceRepository {
     // Logging tag
@@ -69,6 +71,26 @@ public class DeviceRepository {
         }).start();
 
         return devices;
+    }
+
+    public void refreshDeviceStatuses(){
+        Log.i(TAG, "Refreshing device statuses");
+        Map<String, PyObject> pyDevices = HomeyAPI.getAPI().getDevicesPyObject();
+
+        for(Device device : this.devices.getValue()){
+            boolean status = true;
+            String capability = device.getCapability();
+            PyObject pyDevice = pyDevices.get(device.getId());
+
+            Map<PyObject, PyObject> capabilities = pyDevice.get("capabilitiesObj").asMap();
+            if (capabilities.containsKey(capability)) {
+                status = capabilities.get(capability).asMap().get("value").toBoolean();
+            }
+
+            // Verify if status is different than stored value
+            if(device.verifyOnOff(status))
+                DeviceRepository.getInstance().update(device);
+        }
     }
 
     /**

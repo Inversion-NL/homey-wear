@@ -19,6 +19,8 @@ import androidx.wear.widget.drawer.WearableDrawerLayout;
 
 import com.xseth.homey.adapters.DeviceViewModel;
 import com.xseth.homey.adapters.OnOffAdapter;
+import com.xseth.homey.homey.Device;
+import com.xseth.homey.homey.DeviceRepository;
 import com.xseth.homey.utils.ColorRunner;
 import com.xseth.homey.homey.HomeyAPI;
 import com.xseth.homey.utils.OAuth;
@@ -63,10 +65,12 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
                 // Start the HomeyAPI
                 HomeyAPI api = HomeyAPI.buildHomeyAPI(this);
 
-                if (api.isLoggedIn())
+                if (api.isLoggedIn()) {
                     api.authenticateHomey();
+                    // Sync statuses of devices.
+                    DeviceRepository.getInstance().refreshDeviceStatuses();
 
-                else {
+                }else {
                     Log.w(TAG, "No session, authenticating!");
                     OAuth.startOAuth(this);
                     setNotification(R.string.login, R.drawable.ic_login);
@@ -85,8 +89,10 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
                     setNotification(R.string.login, R.drawable.ic_login);
                 }
                 // Unknown error
-                else
+                else {
                     setNotification(R.string.error, R.drawable.ic_error);
+                    e.printStackTrace();
+                }
             }
         }).start();
 

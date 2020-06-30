@@ -214,6 +214,28 @@ public class HomeyAPI {
     }
 
     /**
+     * Get a list of favorite devices in PyObject form
+     * @return map of favorite Pyobject devices with id as key
+     */
+    public Map<String, PyObject> getDevicesPyObject(){
+        List<Device> newList = new LinkedList<>();
+        Map<String, PyObject> deviceMap = new HashMap<>();
+
+        // retrieve favorites list from user if undefined
+        if(deviceFavorites == null) {
+            Map<PyObject, PyObject> favorites = usersManager.callAttr("getUserMe").get("properties").asMap();
+            deviceFavorites = favorites.get("favoriteDevices").asList();
+        }
+
+        // Change device list to Map to quickly filter required favorites
+        for (PyObject dev : devicesManager.callAttr("getDevices").asList())
+            if(deviceFavorites.contains(dev.get("id")))
+                deviceMap.put(dev.get("id").toString(), dev);
+
+        return deviceMap;
+    }
+
+    /**
      * Turn device on or off
      * @param device device to turn on or off
      */

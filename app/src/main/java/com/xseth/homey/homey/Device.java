@@ -55,11 +55,6 @@ public class Device {
         this.name = name;
         this.on = true;
         this.capability = "onoff"; // fallback capability
-
-        // Check whether device is on or off
-        new Thread(() -> {
-            this.verifyOnOff();
-        }).start();
     }
 
     /**
@@ -125,17 +120,9 @@ public class Device {
      * Verify whether this device is turned on or off
      * @return whether onoff is different than currently in device
      */
-    public boolean verifyOnOff(){
-        HomeyAPI api = HomeyAPI.getAPI();
-
-        // Wait for HomeyAPI to be authenticated
-        api.waitForHomeyAPI();
-
-        boolean onoff = api.isOn(this);
-
+    public boolean verifyOnOff(boolean onoff){
         if (onoff != this.on){
             this.setOn(onoff);
-            DeviceRepository.getInstance().update(this);
             return true;
         }
 
