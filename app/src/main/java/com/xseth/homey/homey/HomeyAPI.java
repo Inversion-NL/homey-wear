@@ -169,24 +169,22 @@ public class HomeyAPI {
      * Authenticate against the Homey
      */
     public synchronized void authenticateHomey() {
-        Log.d(TAG, "Start authenticating API");
+        Log.i(TAG, "Start authenticating API");
         if (this.homeyAPI == null) {
-            new Thread(() -> {
-                Log.d(TAG, "Start authenticating API (Thread)");
-                PyObject user = athomCloudAPI.callAttr("getUser");
-                PyObject homey = user.callAttr("getFirstHomey");
+            Log.d(TAG, "Start authenticating API (Thread)");
+            PyObject user = athomCloudAPI.callAttr("getUser");
+            PyObject homey = user.callAttr("getFirstHomey");
 
-                homeyAPI = homey.callAttr("authenticate", new Kwarg("strategy", "cloud"));
-                devicesManager = homeyAPI.get("devices");
-                usersManager = homeyAPI.get("users");
+            homeyAPI = homey.callAttr("authenticate", new Kwarg("strategy", "cloud"));
+            devicesManager = homeyAPI.get("devices");
+            usersManager = homeyAPI.get("users");
 
-                Log.i(TAG, "Authenticated against HomeyAPI: " + homey.toString());
+            Log.i(TAG, "Authenticated against HomeyAPI: " + homey.toString());
 
-                // Notify all threads that the homeyAPI is authenticated
-                synchronized (this){
-                    this.notifyAll();
-                }
-            }).start();
+            // Notify all threads that the homeyAPI is authenticated
+            synchronized (this){
+                this.notifyAll();
+            }
         }
     }
 
