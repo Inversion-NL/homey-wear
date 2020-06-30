@@ -1,6 +1,5 @@
 package com.xseth.homey;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
@@ -29,8 +28,6 @@ import timber.log.Timber;
 public class MainActivity extends FragmentActivity implements MenuItem.OnMenuItemClickListener,
         View.OnClickListener{
 
-    // General android context
-    public static Context context;
     // deviceViewModel for holding device data
     private DeviceViewModel deviceViewModel;
     // Bottom drawer object
@@ -42,8 +39,6 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        context = this.getApplicationContext();
-
         // Configure Timber logging
         if (BuildConfig.DEBUG)
             Timber.plant(new Timber.DebugTree());
@@ -61,9 +56,7 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
 
         // Verify if there is authentication/internet in background
         new Thread(() -> {
-
             try {
-
                 // Start the HomeyAPI
                 HomeyAPI api = HomeyAPI.buildHomeyAPI(this);
 
@@ -133,7 +126,7 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
             return;
 
         utils.showConfirmationPhone(this.getApplicationContext(), R.string.authenticate);
-        OAuth.sendAuthoriziation();
+        OAuth.sendAuthorization(this);
     }
 
     @Override

@@ -1,10 +1,10 @@
 package com.xseth.homey.utils;
 
+import android.app.Activity;
 import android.content.Context;
 import android.net.Uri;
 import android.support.wearable.authentication.OAuthClient;
 
-import com.xseth.homey.MainActivity;
 import com.xseth.homey.R;
 import com.xseth.homey.homey.HomeyAPI;
 
@@ -20,12 +20,19 @@ public class OAuth {
      */
     private static class MyOAuthCallback extends OAuthClient.Callback {
 
+        // Instance of activity starting OAuth
+        private Activity a;
+
+        private MyOAuthCallback(Activity a){
+            this.a = a;
+        }
+
         @Override
         public void onAuthorizationResponse(Uri requestUrl, Uri responseUrl) {
             Timber.i("Received onAuth response");
             String token = responseUrl.getQueryParameter("code");
 
-            utils.showConfirmationSuccess(MainActivity.context, R.string.success_authenticate);
+            utils.showConfirmationSuccess(a.getApplicationContext(), R.string.success_authenticate);
 
             // Set APItoken in separate thread
             HomeyAPI.getAPI().setToken(token);
@@ -46,7 +53,7 @@ public class OAuth {
                     Thread.sleep(5000);
                 } catch (InterruptedException ignored) {}
 
-                utils.showConfirmationFailure(MainActivity.context, R.string.failure_authenticate);
+                utils.showConfirmationFailure(a.getApplicationContext(), R.string.failure_authenticate);
             }).start();
         }
     }
@@ -63,12 +70,12 @@ public class OAuth {
     /**
      * Start OAUTH2 authorization procedure
      */
-    public static void sendAuthoriziation(){
+    public static void sendAuthorization(Activity a){
         HomeyAPI api = HomeyAPI.getAPI();
         String url = api.getLoginURL();
 
         Timber.i("Send authentication via url: %s", url);
-        mOAuthClient.sendAuthorizationRequest(Uri.parse(url), new MyOAuthCallback());
+        mOAuthClient.sendAuthorizationRequest(Uri.parse(url), new MyOAuthCallback(a));
     }
 
     /**
