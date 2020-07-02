@@ -7,6 +7,7 @@ import com.chaquo.python.PyObject;
 import com.chaquo.python.Python;
 import com.chaquo.python.android.AndroidPlatform;
 import com.xseth.homey.BuildConfig;
+import com.xseth.homey.homey.models.Device;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -110,6 +111,7 @@ public class HomeyAPI {
      * @return if there is an authorized session
      */
     public synchronized Boolean isLoggedIn(){
+
         return athomCloudAPI.callAttr("isLoggedIn").toBoolean();
     }
 

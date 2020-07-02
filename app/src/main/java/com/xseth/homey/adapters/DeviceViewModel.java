@@ -5,8 +5,8 @@ import android.app.Application;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 
-import com.xseth.homey.homey.Device;
-import com.xseth.homey.homey.DeviceRepository;
+import com.xseth.homey.homey.models.Device;
+import com.xseth.homey.homey.models.DeviceRepository;
 
 import java.util.List;
 

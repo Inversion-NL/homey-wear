@@ -8,7 +8,7 @@ import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Update;
 
-import com.xseth.homey.homey.Device;
+import com.xseth.homey.homey.models.Device;
 
 import java.util.List;
 

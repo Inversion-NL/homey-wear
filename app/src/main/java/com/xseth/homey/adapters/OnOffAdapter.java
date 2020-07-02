@@ -14,7 +14,7 @@ import android.widget.Toast;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.xseth.homey.R;
-import com.xseth.homey.homey.Device;
+import com.xseth.homey.homey.models.Device;
 
 import java.util.List;
 

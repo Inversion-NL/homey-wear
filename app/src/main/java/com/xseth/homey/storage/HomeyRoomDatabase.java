@@ -7,7 +7,7 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import androidx.room.TypeConverters;
 
-import com.xseth.homey.homey.Device;
+import com.xseth.homey.homey.models.Device;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

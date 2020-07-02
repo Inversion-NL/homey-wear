@@ -1,10 +1,11 @@
-package com.xseth.homey.homey;
+package com.xseth.homey.homey.models;
 
 import android.app.Application;
 
 import androidx.lifecycle.LiveData;
 
 import com.chaquo.python.PyObject;
+import com.xseth.homey.homey.HomeyAPI;
 import com.xseth.homey.storage.DeviceDAO;
 import com.xseth.homey.storage.HomeyRoomDatabase;
 

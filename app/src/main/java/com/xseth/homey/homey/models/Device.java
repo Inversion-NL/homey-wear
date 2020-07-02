@@ -1,4 +1,4 @@
-package com.xseth.homey.homey;
+package com.xseth.homey.homey.models;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -9,13 +9,13 @@ import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
 import com.chaquo.python.PyObject;
+import com.xseth.homey.homey.HomeyAPI;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
