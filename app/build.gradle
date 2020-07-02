@@ -88,4 +88,7 @@ dependencies {
 
     // Testing
     androidTestImplementation "androidx.arch.core:core-testing:$rootProject.coreTestingVersion"
+
+    // Test memory leaks in debug mode
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.4'
 }
