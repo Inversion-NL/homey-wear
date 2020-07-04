@@ -35,7 +35,6 @@ public class OAuth {
             utils.showConfirmationSuccess(a.getApplicationContext(), R.string.success_authenticate);
 
             // Set APItoken in separate thread
-            HomeyAPI.getAPI().setToken(token);
             new Thread(() -> {
                 HomeyAPI.getAPI().setToken(token);
             }).start();
