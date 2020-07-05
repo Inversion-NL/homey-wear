@@ -8,7 +8,6 @@ import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
-import com.chaquo.python.PyObject;
 import com.xseth.homey.homey.HomeyAPI;
 
 import java.io.IOException;
@@ -19,14 +18,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import retrofit2.Call;
 import timber.log.Timber;
 
 @Entity(tableName = "devices")
 public class Device {
-
-    // Logging TAG
-    @Ignore
-    public static final String TAG = "Device";
 
     // Device ID
     @PrimaryKey
@@ -37,16 +33,24 @@ public class Device {
     @NonNull
     private String name;
 
-    // Device capability that is controlled
-    @NonNull
-    private String capability;
-
     // Device on or off
     @NonNull
     private Boolean on;
 
     // Device icon
-    private Bitmap icon;
+    public Bitmap iconImage;
+
+    @NonNull
+    public String capability;
+
+    @Ignore
+    private List<String> capabilities;
+
+    @Ignore
+    private Map<String, Map<String, Object>> capabilitiesObj;
+
+    @Ignore
+    private Map<String, String> iconObj;
 
     /**
      * Device constructor
@@ -57,7 +61,6 @@ public class Device {
         this.id = id;
         this.name = name;
         this.on = true;
-        this.capability = "onoff"; // fallback capability
     }
 
     /**
@@ -82,14 +85,12 @@ public class Device {
      * Get the Icon bitmap
      * @return icon of device
      */
-    public Bitmap getIcon(){
-        return this.icon;
+    public Bitmap getIconImage(){
+        return this.iconImage;
     }
 
     @NonNull
-    public String getCapability() { return capability; }
-
-    public void setCapability(@NonNull String capability ) { this.capability = capability; }
+    public String getCapability() { return this.capability; }
 
     /**
      * Set device ID
@@ -107,11 +108,48 @@ public class Device {
         this.name = name;
     }
 
+    public void setCapability(){
+        List<String> capabilities = Arrays.asList(HomeyAPI.CAPABILITIES);
+
+        for(String capability : this.capabilitiesObj.keySet()){
+            if(capabilities.contains(capability)) {
+                this.capability = capability;
+
+                if(!capability.equals("button"))
+                    this.on = Boolean.getBoolean(
+                            this.capabilitiesObj.get(capability).get("value").toString()
+                    );
+                else
+                    // Button contains no value, so default to true
+                    this.on = true;
+            }
+        }
+
+        // onoff is fallback capability
+        if(this.capability == null) {
+            this.capability = "onoff";
+            this.on = true;
+        }
+    }
+
     /**
-     * Set the icon Bitmap
-     * @param bitmap icon to set
+     * download the icon in bitmap form
      */
-    public void setIcon(Bitmap bitmap) { this.icon = bitmap; }
+    public void fetchIconImage() {
+        String iconId = this.iconObj.get("id");
+        final String strUrl = HomeyAPI.ICON_URL + iconId + "-128.png";
+
+        try{
+            URL url = new URL(strUrl);
+            URLConnection conn = url.openConnection();
+
+            this.iconImage = BitmapFactory.decodeStream(conn.getInputStream());
+        } catch (MalformedURLException mue) {
+            Timber.e(mue, "Error invalid iconUrl");
+        } catch (IOException ioe) {
+            Timber.e(ioe,"Error downloading icon from: %s", strUrl);
+        }
+    }
 
     /**
      * Set the device on or off status
@@ -137,9 +175,6 @@ public class Device {
      * @return if device is on
      */
     public Boolean isOn(){
-        if(this.on == null)
-            return true;
-
         return this.on;
     }
 
@@ -148,81 +183,28 @@ public class Device {
      * @return if device is a button
      */
     public boolean isButton(){
-        return this.capability.equals("button");
+        return this.getCapability().equals("button");
     }
 
     /**
      * Turn device on or off based on on value
      */
-    public void turnOnOff(){
+    public Call turnOnOff() {
         HomeyAPI api = HomeyAPI.getAPI();
         // Wait if HomeyAPI is not yet authenticated
         api.waitForHomeyAPI();
 
-        // Button remains true
-        if(!isButton())
-            this.on = !this.on;
-
-        api.turnOnOff(this);
-        DeviceRepository.getInstance().update(this);
+        return api.turnOnOff(this);
     }
 
-    /**
-     * Parse Python Device object to Java Device object. This fetches device in background
-     * @param pyDevice Python Device object
-     * @return Java Device object
-     */
-    public static Device parsePyDevice(PyObject pyDevice){
-        Timber.v("Start parsing pyObject: %s", pyDevice.toString());
+    public boolean getCapabilityValue(String id){
+        Map<String, Object> capability = this.capabilitiesObj.get(id);
 
-        String id = pyDevice.get("id").toString();
-        String name = pyDevice.get("name").toString();
+        Timber.i("Capability %s | %s --> %s", this.getName(), id, capability);
 
-        Device device = new Device(id, name);
+        if(capability == null || this.isButton())
+            return true;
 
-        final String iconId = pyDevice.get("iconObj").asMap().get("id").toString();
-        final String strUrl = HomeyAPI.ICON_URL + iconId + "-128.png"; // 128 icon size
-
-        // Set capability that is turned on/off, priority capability is in order
-        // of capabilities in HomeyAPI.CAPABILITIES
-        List<String> homeyCapabilities = Arrays.asList(HomeyAPI.CAPABILITIES);
-        Map<PyObject, PyObject> capabilities = pyDevice.get("capabilitiesObj").asMap();
-
-        for(PyObject capabilityId : capabilities.keySet()){
-            Timber.d("Parse PyDevice, verifying capability: %s", capabilityId.toString());
-
-            // Capability is in capabilities whitelist
-            if(homeyCapabilities.contains(capabilityId.toString())){
-                Timber.d("Parse PyDevice, found capability match: %s", capabilityId.toString());
-
-                boolean status = true;
-                PyObject pyStatus = capabilities.get(capabilityId).asMap().get("value");
-
-                // if capability is button then value is always null, so for button status is
-                // always true
-                if(pyStatus != null)
-                    status = pyStatus.toBoolean();
-
-                device.setCapability(capabilityId.toString());
-                device.setOn(status);
-
-                break;
-            }
-        }
-
-        // Fetch icon
-        try{
-            URL url = new URL(strUrl);
-
-            URLConnection conn = url.openConnection();
-            device.setIcon(BitmapFactory.decodeStream(conn.getInputStream()));
-            DeviceRepository.getInstance().update(device);
-        } catch (MalformedURLException mue) {
-            Timber.e(mue, "Error invalid iconUrl");
-        } catch (IOException ioe) {
-            Timber.e(ioe,"Error downloading icon from: %s", strUrl);
-        }
-
-        return device;
+        return (Boolean) capability.get("value");
     }
 }

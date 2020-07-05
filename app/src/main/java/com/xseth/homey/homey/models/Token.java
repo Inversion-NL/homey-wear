@@ -26,6 +26,8 @@ public class Token implements Serializable {
 
     public String getRefreshToken() { return this.refresh_token; }
 
+    public void setAccessToken(String token) { this.access_token = token; }
+
     public void save(){
         String path = MainActivity.appPath + "/" + file_name;
 
