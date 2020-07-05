@@ -11,8 +11,13 @@ import okhttp3.Response;
 
 public class TokenInterceptor implements Interceptor {
 
+    // Token object holding session tokens
     private Token token;
 
+    /**
+     * Set Token object
+     * @param token token object to set
+     */
     public void setSessionToken(Token token) {
         this.token = token;
     }
@@ -23,6 +28,7 @@ public class TokenInterceptor implements Interceptor {
 
         Request.Builder requestBuilder = request.newBuilder();
 
+        // If token present set Authorization header
         if (token != null)
             requestBuilder.addHeader("Authorization", token.getAuthorizationHeader());
 

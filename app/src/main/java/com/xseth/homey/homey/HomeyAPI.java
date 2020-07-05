@@ -66,6 +66,8 @@ public class HomeyAPI {
     private TokenInterceptor tokenInterceptor;
     // HTTP interceptor to handle authentication for homeyService
     private TokenInterceptor homeyTokenInterceptor;
+    // Instance for HTTPLogger
+    private HttpLoggingInterceptor httpLogger;
 
     /**
      * Get HomeyAPI instance
@@ -86,7 +88,13 @@ public class HomeyAPI {
         tokenInterceptor = new TokenInterceptor();
         tokenInterceptor.setSessionToken(Token.load());
 
-        OkHttpClient client = new OkHttpClient.Builder().addInterceptor(tokenInterceptor).build();
+        // Add logging interceptor
+        httpLogger = new HttpLoggingInterceptor(message -> Timber.tag("OkHttp").v(message));
+
+        OkHttpClient client = new OkHttpClient.Builder()
+                .addInterceptor(tokenInterceptor)
+                .addInterceptor(httpLogger)
+                .build();
 
         Retrofit retrofit = new Retrofit.Builder()
                 .client(client)
@@ -95,6 +103,10 @@ public class HomeyAPI {
                 .build();
 
         cloudService = retrofit.create(CloudService.class);
+
+        // Set level BASIC only in debugging mode
+        if (BuildConfig.DEBUG)
+            httpLogger.setLevel(HttpLoggingInterceptor.Level.BASIC);
     }
 
     /**
@@ -201,19 +213,11 @@ public class HomeyAPI {
         if (this.homeyService != null)
             return;
 
-        HttpLoggingInterceptor logging = new HttpLoggingInterceptor(new HttpLoggingInterceptor.Logger() {
-            @Override public void log(String message) {
-                Timber.tag("OkHttp").d(message);
-            }
-        });
-
-        logging.setLevel(HttpLoggingInterceptor.Level.BODY);
-
-        Timber.i("Start authenticating homey");
-
         Token token = new Token();
         Map<String, String> jsonParams = new HashMap<>();
         jsonParams.put("audience", "homey");
+
+        Timber.i("Start authenticating homey");
 
         // Get delegationToken from AthomCloudAPI
         Call<String> call = cloudService.authenticateHomey(jsonParams);
@@ -222,7 +226,7 @@ public class HomeyAPI {
         homeyTokenInterceptor = new TokenInterceptor();
         OkHttpClient client = new OkHttpClient.Builder()
                 .addInterceptor(homeyTokenInterceptor)
-                .addInterceptor(logging)
+                .addInterceptor(httpLogger)
                 .build();
 
         Retrofit retrofit = new Retrofit.Builder()

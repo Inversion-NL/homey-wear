@@ -3,31 +3,47 @@ package com.xseth.homey.homey.models;
 import com.google.gson.Gson;
 import com.xseth.homey.MainActivity;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.Serializable;
 
 import timber.log.Timber;
 
 public class Token implements Serializable {
 
-    private String access_token;
-    private int expires_in;
-    private String token_type;
-    private String refresh_token;
-
+    // String holding OAuth bearer token
+    private String accessToken;
+    // Time after which accessToken expires
+    private int expiresIn;
+    // States type of accessToken
+    private String tokenType;
+    // Token used to get new accessToken
+    private String refreshToken;
+    // File name used for storing Token value
     private static String file_name = "token.json";
 
-    public String getAuthorizationHeader(){ return "Bearer " + this.access_token; }
+    /**
+     * Get accessToken in Bearer token format used by OAuth2
+     * @return accessToken in Bearer token format
+     */
+    public String getAuthorizationHeader(){ return "Bearer " + this.accessToken; }
 
-    public String getRefreshToken() { return this.refresh_token; }
+    /**
+     * Get refreshToken
+     * @return refreshToken
+     */
+    public String getRefreshToken() { return this.refreshToken; }
 
-    public void setAccessToken(String token) { this.access_token = token; }
+    /**
+     * Set new accessToken
+     * @param token new accessToken
+     */
+    public void setAccessToken(String token) { this.accessToken = token; }
 
+    /**
+     * Save current token object to file
+     */
     public void save(){
         String path = MainActivity.appPath + "/" + file_name;
 
@@ -42,11 +58,10 @@ public class Token implements Serializable {
         }
     }
 
-    @Override
-    public String toString(){
-        return "<Token> " + this.access_token + "("+this.expires_in+")";
-    }
-
+    /**
+     * Load a token object from json file
+     * @return Token object
+     */
     public static Token load(){
         Token token = null;
         Gson gson = new Gson();

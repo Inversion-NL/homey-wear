@@ -75,6 +75,9 @@ public class DeviceRepository {
         return devices;
     }
 
+    /**
+     * Ensure saved devices object has the current onoff status
+     */
     public void refreshDeviceStatuses(){
         Timber.i("Refreshing device statuses");
 

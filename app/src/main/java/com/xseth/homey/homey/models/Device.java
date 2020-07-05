@@ -40,15 +40,15 @@ public class Device {
     // Device icon
     public Bitmap iconImage;
 
+    // Capability which is modified
     @NonNull
     public String capability;
 
-    @Ignore
-    private List<String> capabilities;
-
+    // Capabilities Object returned by API
     @Ignore
     private Map<String, Map<String, Object>> capabilitiesObj;
 
+    // Icon Object returned by API, containing icon IDs
     @Ignore
     private Map<String, String> iconObj;
 
@@ -89,6 +89,10 @@ public class Device {
         return this.iconImage;
     }
 
+    /**
+     * Get capability which is used
+     * @return capability which is used
+     */
     @NonNull
     public String getCapability() { return this.capability; }
 
@@ -108,6 +112,11 @@ public class Device {
         this.name = name;
     }
 
+    /**
+     * Determine which capability of devices is used by this app. Get latest status of capability
+     *
+     * Available options are listed in HomeyAPI. Default value is onoff
+     */
     public void setCapability(){
         List<String> capabilities = Arrays.asList(HomeyAPI.CAPABILITIES);
 
@@ -197,11 +206,15 @@ public class Device {
         return api.turnOnOff(this);
     }
 
+    /**
+     * Get the value (on|off) of capability specified by ID
+     * @param id capability ID to get value from
+     * @return boolean value whether capability is on|off
+     */
     public boolean getCapabilityValue(String id){
         Map<String, Object> capability = this.capabilitiesObj.get(id);
 
-        Timber.i("Capability %s | %s --> %s", this.getName(), id, capability);
-
+        // If capability is not found or if button, fallback is true
         if(capability == null || this.isButton())
             return true;
 
