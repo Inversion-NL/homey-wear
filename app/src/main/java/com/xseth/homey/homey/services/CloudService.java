@@ -3,6 +3,8 @@ package com.xseth.homey.homey.services;
 import com.xseth.homey.homey.models.Token;
 import com.xseth.homey.homey.models.User;
 
+import java.util.Map;
+
 import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -32,5 +34,9 @@ public interface CloudService {
     @FormUrlEncoded
     @POST("oauth2/token")
     Call<Token> refreshToken(@Field("client_id") String client_id, @Field("client_secret") String
-            client_secret, @Field("grant_type") String grant_type, @Field("refresh_token") String code);
+            client_secret, @Field("grant_type") String grant_type, @Field("refresh_token") String
+            code);
+
+    @POST("delegation/token?audience=homey")
+    Call<String> authenticateHomey(@Body Map<String, String> body);
 }
