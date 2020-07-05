@@ -1,15 +1,32 @@
 package com.xseth.homey.homey;
 
-import android.content.Context;
 import com.xseth.homey.BuildConfig;
 import com.xseth.homey.homey.models.Device;
+import com.xseth.homey.homey.models.Homey;
+import com.xseth.homey.homey.models.Token;
+import com.xseth.homey.homey.models.User;
+import com.xseth.homey.homey.services.CloudService;
+import com.xseth.homey.homey.services.HomeyService;
+import com.xseth.homey.utils.TokenInterceptor;
+
+import java.io.IOException;
 
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.logging.HttpLoggingInterceptor;
+import retrofit2.Call;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 import timber.log.Timber;
+
+
 
 public class HomeyAPI {
 
@@ -39,75 +56,57 @@ public class HomeyAPI {
 
     // Instance HomeyAPI for singleton
     private static volatile HomeyAPI INSTANCE;
-    // AthomCloudAPI instance
-    private PyObject athomCloudAPI;
-    // HomeyAPI instance
-    private PyObject homeyAPI;
-    // HomeyAPI UsersManager instance
-    private PyObject usersManager;
-    // HomeyAPI DevicesManager instance
-    private PyObject devicesManager;
-    // List of favorite devices IDs
-    private List<PyObject> deviceFavorites;
+    // Service pointing to the AthomCloudAPI
+    private CloudService cloudService;
+    // Service pointing to the HomeyAPI
+    private HomeyService homeyService;
+    // Athom User object
+    private User user;
+    // HTTP interceptor to handle authentication cloudService
+    private TokenInterceptor tokenInterceptor;
+    // HTTP interceptor to handle authentication for homeyService
+    private TokenInterceptor homeyTokenInterceptor;
 
     /**
      * Get HomeyAPI instance
      * @return instance of HomeyAPI
      */
     public synchronized static HomeyAPI getAPI() {
-        // Wait for Thread to build HomeyAPI
-        while(INSTANCE == null) {
-            try {
-                Thread.sleep(50);
-            } catch (InterruptedException e) {}
-        }
+        if(INSTANCE == null)
+            INSTANCE = new HomeyAPI();
 
         return INSTANCE;
     }
 
     /**
-     * Build HomeyAPI
-     * @param context ApplicationContext
-     * @return HomeyAPI instance
-     */
-    public static HomeyAPI buildHomeyAPI(final Context context){
-        HomeyAPI.INSTANCE = new HomeyAPI(context);
-        return HomeyAPI.INSTANCE;
-    }
-
-    /**
      * HomeyAPI constructor
-     * @param ctx context for Python environment
      */
-    public HomeyAPI(Context ctx){
-        // Retrieve the python environment
-        Python py = getPython(ctx);
+    public HomeyAPI(){
+        // Create Interceptor for Bearer token and load, if existing, previous saved bearer token
+        tokenInterceptor = new TokenInterceptor();
+        tokenInterceptor.setSessionToken(Token.load());
 
-        // Get path to local storage
-        String storagePath = ctx.getFilesDir().getAbsolutePath() + "/homeyLocalStorage.db";
+        OkHttpClient client = new OkHttpClient.Builder().addInterceptor(tokenInterceptor).build();
 
-        // Create LocalStorage obj with path in local storage
-        PyObject storageObj = py.getModule("athom.storage.localstorage").callAttr(
-                "LocalStorage",
-                new Kwarg("path", storagePath)
-                );
+        Retrofit retrofit = new Retrofit.Builder()
+                .client(client)
+                .addConverterFactory(GsonConverterFactory.create())
+                .baseUrl("https://api.athom.com/")
+                .build();
 
-        // Get AthomCloudAPI instance
-        athomCloudAPI = py.getModule("athom.cloud").callAttr("AthomCloudAPI",
-                CLIENT_ID,
-                CLIENT_SECRET,
-                RETURN_URL,
-                new Kwarg("storage", storageObj)
-        );
+        cloudService = retrofit.create(CloudService.class);
     }
 
     /**
      * Verify whether there is an authorized session
      * @return if there is an authorized session
      */
-    public synchronized Boolean isLoggedIn(){
+    public synchronized Boolean isLoggedIn() throws IOException {
+        Call<User> call = cloudService.getUser();
 
-        return athomCloudAPI.callAttr("isLoggedIn").toBoolean();
+        user = call.execute().body();
+
+        return (user != null);
     }
 
     /**
@@ -115,7 +114,7 @@ public class HomeyAPI {
      * @return if there is an authorized HomeyAPI
      */
     public synchronized Boolean isHomeyAuthenticated(){
-        return this.homeyAPI != null;
+        return this.homeyService != null;
     }
 
     /**
@@ -135,12 +134,49 @@ public class HomeyAPI {
 
     /**
      * Set an OAUTH2 session token
-     * @param token OAUTH2 session token
+     * @param code OAUTH2 session token
      */
-    public void setToken(String token){
+    public void setToken(String code) throws IOException {
         Timber.i("Stored OAuth token");
-        athomCloudAPI.callAttr("authenticateWithAuthorizationCode", token);
+
+        Call call = cloudService.authenticate(
+                CLIENT_ID,
+                CLIENT_SECRET,
+                "authorization_code",
+                code
+        );
+
+        Token token = (Token) call.execute().body();
+        token.save();
+
+        tokenInterceptor.setSessionToken(token);
+
         authenticateHomey();
+    }
+
+    /**
+     * Retrieve new OAUTH2 session token via token refresh
+     * @param refreshToken OAUTH2 refresh token
+     */
+    public void refreshToken(String refreshToken){
+        // Set token to null to signify refresh
+        tokenInterceptor.setSessionToken(null);
+
+        Call<Token> call = cloudService.refreshToken(
+                CLIENT_ID,
+                CLIENT_SECRET,
+                "refresh_token",
+                refreshToken
+        );
+
+        try {
+            Token token = call.execute().body();
+            token.save();
+
+            tokenInterceptor.setSessionToken(token);
+        } catch (IOException e) {
+            Timber.e(e, "Failed to refresh token");
+        }
     }
 
     /**
@@ -148,40 +184,72 @@ public class HomeyAPI {
      * @return login url used by OAUTH2
      */
     public String getLoginURL() {
-        return athomCloudAPI.callAttr(
-                "getLoginUrl",
-                new Kwarg("scopes", SCOPES)
-        ).toString();
-    }
+        Request request = cloudService.getLoginURL(
+                            CLIENT_ID,
+                            RETURN_URL,
+                            String.join(",", SCOPES)
+        ).request();
 
-    /**
-     * Get the URL pointing to the HomeyAPI
-     * @return URL of HomeyAPI
-     */
-    public String getHomeyURL(){
-        return homeyAPI.get("url").toString();
+        return request.url().toString();
     }
 
     /**
      * Authenticate against the Homey
      */
-    public synchronized void authenticateHomey() {
-        Timber.i("Start authenticating API");
+    public synchronized void authenticateHomey() throws IOException {
+        // if homeyService already exists, skip
+        if (this.homeyService != null)
+            return;
 
-        if (this.homeyAPI == null) {
-            PyObject user = athomCloudAPI.callAttr("getUser");
-            PyObject homey = user.callAttr("getFirstHomey");
-
-            homeyAPI = homey.callAttr("authenticate", new Kwarg("strategy", "cloud"));
-            devicesManager = homeyAPI.get("devices");
-            usersManager = homeyAPI.get("users");
-
-            Timber.i("Authenticated against HomeyAPI: %s", homey.toString());
-
-            // Notify all threads that the homeyAPI is authenticated
-            synchronized (this){
-                this.notifyAll();
+        HttpLoggingInterceptor logging = new HttpLoggingInterceptor(new HttpLoggingInterceptor.Logger() {
+            @Override public void log(String message) {
+                Timber.tag("OkHttp").d(message);
             }
+        });
+
+        logging.setLevel(HttpLoggingInterceptor.Level.BODY);
+
+        Timber.i("Start authenticating homey");
+
+        Token token = new Token();
+        Map<String, String> jsonParams = new HashMap<>();
+        jsonParams.put("audience", "homey");
+
+        // Get delegationToken from AthomCloudAPI
+        Call<String> call = cloudService.authenticateHomey(jsonParams);
+        String delegationToken = call.execute().body();
+
+        homeyTokenInterceptor = new TokenInterceptor();
+        OkHttpClient client = new OkHttpClient.Builder()
+                .addInterceptor(homeyTokenInterceptor)
+                .addInterceptor(logging)
+                .build();
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .client(client)
+                .addConverterFactory(GsonConverterFactory.create())
+                .baseUrl(this.user.getFirstHomey().getRemoteUrl())
+                .build();
+
+        // Create Service for homeyAPI
+        homeyService = retrofit.create(HomeyService.class);
+
+        jsonParams = new HashMap<>();
+        jsonParams.put("token", delegationToken);
+
+        // Login via delegationToken to retrieve sessionToken
+        call = homeyService.login(jsonParams);
+        String homeyToken = call.execute().body();
+
+        // Set sessionToken for accessing rest of Homey APIs
+        token.setAccessToken(homeyToken);
+        homeyTokenInterceptor.setSessionToken(token);
+
+        Timber.i("Successfully authenticated against homey");
+
+        // Notify all threads that the homeyAPI is authenticated
+        synchronized (this){
+            this.notifyAll();
         }
     }
 
@@ -189,96 +257,43 @@ public class HomeyAPI {
      * Get a list of favorite devices
      * @return list of favorite devices
      */
-    public List<Device> getDevices(){
-        List<Device> newList = new LinkedList<>();
-        Map<String, PyObject> deviceMap = new HashMap<>();
+    public Map<String, Device> getDevices(){
+        // LinkedHashMap keeps order of keys
+        Map<String, Device> newList = new LinkedHashMap<>();
 
-        // retrieve favorites list from user
-        Map<PyObject, PyObject> favorites = usersManager.callAttr("getUserMe").get("properties").asMap();
-        deviceFavorites = favorites.get("favoriteDevices").asList();
+        try {
+            Call<Map<String, Device>> call = homeyService.getDevices();
+            Map<String, Device> devices = call.execute().body();
 
-        // Change device list to Map to quickly filter required favorites
-        for (PyObject dev : devicesManager.callAttr("getDevices").asList())
-            deviceMap.put(dev.get("id").toString(), dev);
+            Call<User> userCall = homeyService.getUser();
+            User user = userCall.execute().body();
 
-        // Only parse favorite devices
-        for (PyObject favoriteId : deviceFavorites){
-            PyObject dev = deviceMap.get(favoriteId.toString());
-            newList.add(Device.parsePyDevice(dev));
+            for(String id : user.getDeviceFavorites()) {
+                Device device = devices.get(id);
+                device.setCapability(); // Configure capability and onoff value
+                newList.put(id, device);
+            }
+        } catch (IOException ioe){
+            Timber.e(ioe, "Failed to retrieve devices");
         }
 
         return newList;
     }
 
     /**
-     * Get a list of favorite devices in PyObject form
-     * @return map of favorite Pyobject devices with id as key
-     */
-    public Map<String, PyObject> getDevicesPyObject(){
-        Map<String, PyObject> deviceMap = new HashMap<>();
-
-        // retrieve favorites list from user if undefined
-        if(deviceFavorites == null) {
-            Map<PyObject, PyObject> favorites = usersManager.callAttr("getUserMe").get("properties").asMap();
-            deviceFavorites = favorites.get("favoriteDevices").asList();
-        }
-
-        // Change device list to Map to quickly filter required favorites
-        for (PyObject dev : devicesManager.callAttr("getDevices").asList())
-            if(deviceFavorites.contains(dev.get("id")))
-                deviceMap.put(dev.get("id").toString(), dev);
-
-        return deviceMap;
-    }
-
-    /**
      * Turn device on or off
      * @param device device to turn on or off
      */
-    public void turnOnOff(Device device){
-        PyObject ret = devicesManager.callAttr(
-                "setCapabilityValue",
-                new Kwarg("deviceId", device.getId()),
-                new Kwarg("capabilityId", device.getCapability()),
-                new Kwarg("value", device.isOn())
+    public Call<Map<String, Object>> turnOnOff(Device device){
+        Map<String, Boolean> jsonParams = new HashMap<>();
+
+        // Set new value, onoff is opposite of current value
+        jsonParams.put("value", !device.isOn());
+
+        return homeyService.setCapability(
+                device.getId(),
+                device.getCapability(),
+                jsonParams
         );
-    }
-
-    /**
-     * Check for device if its on or off
-     * @param device device to check
-     * @return device is on?
-     */
-    public boolean isOn(Device device) {
-        try {
-            String capability = device.getCapability();
-            PyObject pyDevice = devicesManager.callAttrThrows(
-                    "getDevice",
-                    new Kwarg("id", device.getId())
-            );
-
-            Map<PyObject, PyObject> capabilities = pyDevice.get("capabilitiesObj").asMap();
-            if (capabilities.containsKey(capability)) {
-                return capabilities.get(capability).asMap().get("value").toBoolean();
-            } else {
-                return true;
-            }
-        } catch (Throwable throwable) {
-            Timber.e(throwable, "Device<%s>.isOn error", device);
-        }
-
-        return true;
-    }
-
-    /**
-     * Retrieve Python instance, start environment if necessary
-     * @param ctx ApplicationContext
-     * @return Python instance
-     */
-    private Python getPython(Context ctx){
-        if(!Python.isStarted())
-            Python.start(new AndroidPlatform(ctx));
-
-        return Python.getInstance();
     }
 }

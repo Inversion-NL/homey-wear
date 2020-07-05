@@ -36,7 +36,12 @@ public class OAuth {
 
             // Set APItoken in separate thread
             new Thread(() -> {
-                HomeyAPI.getAPI().setToken(token);
+                try {
+                    HomeyAPI.getAPI().setToken(token);
+                } catch (Exception e){
+                    Timber.e(e, "Failed to parse Oauth code");
+                    utils.showConfirmationFailure(a.getApplicationContext(), R.string.failure_authenticate);
+                }
             }).start();
 
             OAuth.stopOAuth();
