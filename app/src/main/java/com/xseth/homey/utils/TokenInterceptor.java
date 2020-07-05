@@ -28,12 +28,15 @@ public class TokenInterceptor implements Interceptor {
 
         Response response = chain.proceed(requestBuilder.build());
 
-        // Token expired, refresh token!
-        if((response.code() == 400 || response.code() == 401) && token != null) {
+        // Token expired, refresh token if available
+        if((response.code() == 400 || response.code() == 401) && token != null &&
+                token.getRefreshToken() != null) {
+
+            response.close();
             HomeyAPI.getAPI().refreshToken(token.getRefreshToken());
             return chain.proceed(requestBuilder.build());
-        } else{
+
+        } else
             return response;
-        }
     }
 }
