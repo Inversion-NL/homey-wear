@@ -1,11 +1,6 @@
 package com.xseth.homey.homey;
 
 import android.content.Context;
-
-import com.chaquo.python.Kwarg;
-import com.chaquo.python.PyObject;
-import com.chaquo.python.Python;
-import com.chaquo.python.android.AndroidPlatform;
 import com.xseth.homey.BuildConfig;
 import com.xseth.homey.homey.models.Device;
 

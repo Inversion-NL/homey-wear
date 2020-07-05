@@ -1,5 +1,4 @@
 apply plugin: 'com.android.application'
-apply plugin: 'com.chaquo.python'
 
 Properties properties = new Properties()
 properties.load(project.rootProject.file('local.properties').newDataInputStream())
@@ -14,15 +13,6 @@ android {
         targetSdkVersion 29
         versionCode 1
         versionName "1.0"
-        ndk {
-            abiFilters "armeabi-v7a", "x86"
-        }
-
-        python {
-            pip {
-                install "athom-api==1.1.0"
-            }
-        }
 
         // should correspond to key/value pairs inside the file
         buildConfigField("String", "ATHOM_CLIENT_ID", properties.getProperty('CLIENT_ID'))
