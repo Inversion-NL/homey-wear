@@ -4,7 +4,7 @@ import android.app.Application;
 
 import androidx.lifecycle.LiveData;
 
-import com.chaquo.python.PyObject;
+import com.xseth.homey.homey.models.Device;
 import com.xseth.homey.storage.DeviceDAO;
 import com.xseth.homey.storage.HomeyRoomDatabase;
 
@@ -65,37 +65,34 @@ public class DeviceRepository {
                 api.waitForHomeyAPI();
 
                 // Save the devices in DB
-                for (Device dev : api.getDevices())
+                for (Device dev : api.getDevices().values()) {
+                    dev.fetchIconImage();
                     this.insert(dev);
+                }
             }
         }).start();
 
         return devices;
     }
 
+    /**
+     * Ensure saved devices object has the current onoff status
+     */
     public void refreshDeviceStatuses(){
         Timber.i("Refreshing device statuses");
-        Map<String, PyObject> pyDevices = HomeyAPI.getAPI().getDevicesPyObject();
+
+        HomeyAPI api = HomeyAPI.getAPI();
+
+        // Wait for homey API is authenticated
+        api.waitForHomeyAPI();
+
+        Map<String, Device> newDevices = api.getDevices();
 
         for(Device device : this.devices.getValue()){
-            boolean status = true;
-            String capability = device.getCapability();
-            PyObject pyDevice = pyDevices.get(device.getId());
+            Device tmpDevice = newDevices.get(device.getId());
 
-            Map<PyObject, PyObject> capabilities = pyDevice.get("capabilitiesObj").asMap();
-            if (capabilities.containsKey(capability)) {
-                PyObject pyStatus = capabilities.get(capability).asMap().get("value");
-
-                // If device is button, status is always null
-                if(pyStatus != null)
-                    status = capabilities.get(capability).asMap().get("value").toBoolean();
-                else
-                    status = true;
-            }
-
-            // Verify if status is different than stored value
-            if(device.verifyOnOff(status))
-                DeviceRepository.getInstance().update(device);
+            device.setOn(tmpDevice.getCapabilityValue(device.getCapability()));
+            this.update(device);
         }
     }
 
@@ -113,6 +110,7 @@ public class DeviceRepository {
      */
     public void insert(final Device device) {
         HomeyRoomDatabase.databaseWriteExecutor.execute(() -> {
+            Timber.i("Device %s, %s --> %s", device.getName(), device.getCapability(), device.isOn());
             deviceDAO.insert(device);
         });
     }
@@ -124,6 +122,7 @@ public class DeviceRepository {
     public void update(final Device device) {
         HomeyRoomDatabase.databaseWriteExecutor.execute(() -> {
             deviceDAO.updateDevices(device);
+            Timber.i("Update %s --> %s", device.getName(), device.isOn());
         });
     }
 

@@ -14,10 +14,15 @@ import android.widget.Toast;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.xseth.homey.R;
-import com.xseth.homey.homey.Device;
+import com.xseth.homey.homey.models.Device;
+import com.xseth.homey.homey.DeviceRepository;
 
 import java.util.List;
+import java.util.Map;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import timber.log.Timber;
 
 interface RecyclerViewClickListener {
@@ -80,7 +85,7 @@ public class OnOffAdapter extends RecyclerView.Adapter<OnOffAdapter.viewHolder>
     public void onBindViewHolder(viewHolder holder, int position) {
         Device device = devices.get(position);
 
-        holder.onOffIcon.setImageBitmap(device.getIcon());
+        holder.onOffIcon.setImageBitmap(device.getIconImage());
         holder.onOffTitle.setText(device.getName());
 
         // define background color
@@ -94,27 +99,39 @@ public class OnOffAdapter extends RecyclerView.Adapter<OnOffAdapter.viewHolder>
     public void onClick(View view, int position) {
         Device device = this.devices.get(position);
 
-        try {
-            device.turnOnOff();
+        device.turnOnOff().enqueue(new Callback<Map<String, Object>>() {
+            @Override
+            public void onResponse(Call<Map<String, Object>> call, Response<Map<String, Object>> response) {
+                boolean status = true;
 
-            int color_id = device.isOn() ? R.color.device_on : R.color.device_off;
-            int color = view.getContext().getResources().getColor(color_id);
+                // get status from call and update device, if button no value is returned
+                if(response.body().containsKey("value"))
+                    status = (boolean) response.body().get("value");
 
-            view.getBackground().setColorFilter(new PorterDuffColorFilter(
-                    color, PorterDuff.Mode.MULTIPLY
-            ));
+                device.setOn(status);
+                DeviceRepository.getInstance().update(device);
 
-            // If device is button, background never changes so notify via Toast message
-            if(device.isButton()) {
-                String text = view.getResources().getString(R.string.button_press, device.getName());
-                Toast.makeText(view.getContext(), text, Toast.LENGTH_LONG).show();
+                int color_id = device.isOn() ? R.color.device_on : R.color.device_off;
+                int color = view.getContext().getResources().getColor(color_id);
+
+                view.getBackground().setColorFilter(new PorterDuffColorFilter(
+                        color, PorterDuff.Mode.MULTIPLY
+                ));
+
+                // If device is button, background never changes so notify via Toast message
+                if(device.isButton()) {
+                    String text = view.getResources().getString(R.string.button_press, device.getName());
+                    Toast.makeText(view.getContext(), text, Toast.LENGTH_LONG).show();
+                }
             }
 
-        }catch (Exception e){
-            Timber.e(e, "Failed to turn onoff");
-            // Show popup if fail to turn on or off
-            Toast.makeText(view.getContext(), R.string.fail_turnonoff, Toast.LENGTH_LONG).show();
-        }
+            @Override
+            public void onFailure(Call call, Throwable t) {
+                Timber.e(t, "Failed to turn onoff");
+                // Show popup if fail to turn on or off
+                Toast.makeText(view.getContext(), R.string.fail_turnonoff, Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     /**

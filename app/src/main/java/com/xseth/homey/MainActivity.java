@@ -23,6 +23,8 @@ import com.xseth.homey.homey.HomeyAPI;
 import com.xseth.homey.utils.OAuth;
 import com.xseth.homey.utils.utils;
 
+import java.net.UnknownHostException;
+
 import timber.log.Timber;
 
 public class MainActivity extends FragmentActivity implements MenuItem.OnMenuItemClickListener,
@@ -36,6 +38,8 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
     private FrameLayout notifications;
     // Recyclerview containing devices
     private WearableRecyclerView vOnOffList;
+    // Path to app directory on system
+    public static String appPath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +50,8 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
         // Create view
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        appPath = this.getApplicationContext().getFilesDir().getAbsolutePath();
 
         // View used for notifications
         notifications = findViewById(R.id.notification);
@@ -58,36 +64,27 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
         new Thread(() -> {
             try {
                 // Start the HomeyAPI
-                HomeyAPI api = HomeyAPI.buildHomeyAPI(this);
+                HomeyAPI api = HomeyAPI.getAPI();
 
                 if (api.isLoggedIn()) {
+                    Timber.i("G");
                     api.authenticateHomey();
                     // Sync statuses of devices.
                     DeviceRepository.getInstance().refreshDeviceStatuses();
 
-                }else {
+                } else {
                     Timber.w("No session, authenticating!");
                     OAuth.startOAuth(this);
                     setNotification(R.string.login, R.drawable.ic_login);
                 }
+
+            // No internet connection, show notification
+            } catch(UnknownHostException uhe){
+                setNotification(R.string.no_internet, R.drawable.ic_cloud_off);
+
             }catch(Exception e) {
                 Timber.e(e);
-
-                // No internet connection, show notification
-                if (e.getLocalizedMessage().contains("AthomAPIConnectionError"))
-                    setNotification(R.string.no_internet, R.drawable.ic_cloud_off);
-
-                // Contains invalid session, reauthorizing
-                else if (e.getLocalizedMessage().contains("AthomCloudAuthenticationError")){
-                    Timber.w("Invalid session, reauthorizing!");
-                    OAuth.startOAuth(this);
-                    setNotification(R.string.login, R.drawable.ic_login);
-                }
-                // Unknown error
-                else {
-                    setNotification(R.string.error, R.drawable.ic_error);
-                    e.printStackTrace();
-                }
+                setNotification(R.string.error, R.drawable.ic_error);
             }
         }).start();
 

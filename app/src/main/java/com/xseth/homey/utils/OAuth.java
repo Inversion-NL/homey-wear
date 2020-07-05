@@ -21,10 +21,10 @@ public class OAuth {
     private static class MyOAuthCallback extends OAuthClient.Callback {
 
         // Instance of activity starting OAuth
-        private Activity a;
+        private Activity activity;
 
-        private MyOAuthCallback(Activity a){
-            this.a = a;
+        private MyOAuthCallback(Activity activity){
+            this.activity = activity;
         }
 
         @Override
@@ -32,12 +32,16 @@ public class OAuth {
             Timber.i("Received onAuth response");
             String token = responseUrl.getQueryParameter("code");
 
-            utils.showConfirmationSuccess(a.getApplicationContext(), R.string.success_authenticate);
+            utils.showConfirmationSuccess(activity.getApplicationContext(), R.string.success_authenticate);
 
             // Set APItoken in separate thread
-            HomeyAPI.getAPI().setToken(token);
             new Thread(() -> {
-                HomeyAPI.getAPI().setToken(token);
+                try {
+                    HomeyAPI.getAPI().setToken(token);
+                } catch (Exception e){
+                    Timber.e(e, "Failed to parse Oauth code");
+                    utils.showConfirmationFailure(activity.getApplicationContext(), R.string.failure_authenticate);
+                }
             }).start();
 
             OAuth.stopOAuth();
@@ -53,7 +57,7 @@ public class OAuth {
                     Thread.sleep(5000);
                 } catch (InterruptedException ignored) {}
 
-                utils.showConfirmationFailure(a.getApplicationContext(), R.string.failure_authenticate);
+                utils.showConfirmationFailure(activity.getApplicationContext(), R.string.failure_authenticate);
             }).start();
         }
     }

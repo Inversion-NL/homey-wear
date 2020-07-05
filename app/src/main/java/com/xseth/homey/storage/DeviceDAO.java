@@ -8,7 +8,7 @@ import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Update;
 
-import com.xseth.homey.homey.Device;
+import com.xseth.homey.homey.models.Device;
 
 import java.util.List;
 
@@ -16,7 +16,7 @@ import java.util.List;
 public interface DeviceDAO {
     // allowing the insert of the same word multiple times by passing a
     // conflict resolution strategy
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insert(Device device);
 
     @Delete
@@ -33,5 +33,4 @@ public interface DeviceDAO {
 
     @Update
     void updateDevices(Device... devices);
-
 }
