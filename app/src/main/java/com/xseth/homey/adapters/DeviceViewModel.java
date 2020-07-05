@@ -6,7 +6,7 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 
 import com.xseth.homey.homey.models.Device;
-import com.xseth.homey.homey.models.DeviceRepository;
+import com.xseth.homey.homey.DeviceRepository;
 
 import java.util.List;
 
@@ -44,8 +44,7 @@ public class DeviceViewModel extends AndroidViewModel {
      */
     public void refreshDevices(){
         // Remove all devices from viewModel & DB
-        for(Device dev : this.devices.getValue())
-            mRepository.deleteDevices();
+        mRepository.deleteDevices();
 
         // Force reloading of all devices
         mRepository.getAllDevices(true);
