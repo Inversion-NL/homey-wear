@@ -8,6 +8,7 @@ import java.io.IOException;
 import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.Response;
+import timber.log.Timber;
 
 public class TokenInterceptor implements Interceptor {
 
@@ -38,11 +39,17 @@ public class TokenInterceptor implements Interceptor {
         if((response.code() == 400 || response.code() == 401) && token != null &&
                 token.getRefreshToken() != null) {
 
+            Timber.w("401 denied, refreshing token!");
             response.close();
+
             HomeyAPI.getAPI().refreshToken(token.getRefreshToken());
+            requestBuilder.header("Authorization", token.getAuthorizationHeader());
+
             return chain.proceed(requestBuilder.build());
 
         } else
             return response;
     }
+
+
 }
