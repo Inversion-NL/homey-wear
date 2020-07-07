@@ -1,6 +1,8 @@
 package com.xseth.homey.homey.models;
 
 import com.google.gson.Gson;
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 import com.xseth.homey.MainActivity;
 
 import java.io.FileReader;
@@ -13,14 +15,23 @@ import timber.log.Timber;
 public class Token implements Serializable {
 
     // String holding OAuth bearer token
+    @SerializedName("access_token")
     private String accessToken;
+
     // Time after which accessToken expires
+    @SerializedName("expires_in")
     private int expiresIn;
+
     // States type of accessToken
+    @SerializedName("token_type")
     private String tokenType;
     // Token used to get new accessToken
+
+    @SerializedName("refresh_token")
     private String refreshToken;
     // File name used for storing Token value
+
+    @Expose(serialize = false)
     private static String file_name = "token.json";
 
     /**

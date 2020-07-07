@@ -163,6 +163,7 @@ public class HomeyAPI {
 
         tokenInterceptor.setSessionToken(token);
 
+        // Authenticate Homey
         authenticateHomey();
     }
 
