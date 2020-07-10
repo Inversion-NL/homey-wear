@@ -3,14 +3,24 @@ package com.xseth.homey.homey.models;
 import com.google.gson.Gson;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
+import com.xseth.homey.BuildConfig;
 import com.xseth.homey.MainActivity;
 
+import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.Serializable;
+import java.security.GeneralSecurityException;
 
 import timber.log.Timber;
+
+import static com.xseth.homey.utils.utils.getEncryptedInputStream;
+import static com.xseth.homey.utils.utils.getEncryptedOutputStream;
 
 public class Token implements Serializable {
 
@@ -57,15 +67,32 @@ public class Token implements Serializable {
      */
     public void save(){
         String path = MainActivity.appPath + "/" + file_name;
-
         Gson gson = new Gson();
-        try (FileWriter file = new FileWriter(path)) {
 
-            file.write(gson.toJson(this));
-            file.flush();
+        File f = new File(MainActivity.appPath + "/" + "token.debug.json");
+
+        // In DebugMode also write token in cleartext, required for access in emulator
+        if(f.exists() && BuildConfig.DEBUG) {
+            try (FileWriter file = new FileWriter(f)) {
+                file.write(gson.toJson(this));
+                file.flush();
+
+                Timber.i("Load token from file: %s", path);
+            } catch (Exception e) {
+                Timber.e(e, "Cannot load token to file");
+            }
+        }
+
+        try (OutputStream output = getEncryptedOutputStream(MainActivity.context,
+                "athomToken", path)) {
+
+            output.write(gson.toJson(this).getBytes());
+            output.flush();
 
         } catch (IOException e) {
             Timber.e(e, "Cannot save token to file");
+        } catch(GeneralSecurityException gse){
+            Timber.e(gse, "Error getting key material to save token to file");
         }
     }
 
@@ -78,11 +105,36 @@ public class Token implements Serializable {
         Gson gson = new Gson();
         String path = MainActivity.appPath + "/" + file_name;
 
-        try (FileReader file = new FileReader(path)) {
-            token = gson.fromJson(file, Token.class);
-            Timber.i("Load token from file: %s", path);
-        } catch (Exception e) {
-            Timber.e(e, "Cannot load token to file");
+        File f = new File(MainActivity.appPath + "/" + "token.debug.json");
+
+        // In DebugMode read access Token in cleartext, required for access in emulator
+        if(f.exists() && BuildConfig.DEBUG) {
+            try (FileReader file = new FileReader(path)) {
+                token = gson.fromJson(file, Token.class);
+                Timber.i("Load token cleartext from file: %s", path);
+                return token;
+            } catch (Exception e) {
+                Timber.e(e, "Cannot load token to file");
+            }
+        }
+
+        try (InputStream input = getEncryptedInputStream(MainActivity.context,
+                "athomToken", path)) {
+
+            BufferedReader r = new BufferedReader(new InputStreamReader(input));
+            StringBuilder total = new StringBuilder();
+
+            // Read all input
+            for (String line; (line = r.readLine()) != null; ) {
+                total.append(line).append('\n');
+            }
+
+            token = gson.fromJson(total.toString(), Token.class);
+
+        } catch (IOException e) {
+            Timber.e(e, "Cannot save token to file");
+        } catch(GeneralSecurityException gse){
+            Timber.e(gse, "Error getting key material to save token to file");
         }
 
         return token;
