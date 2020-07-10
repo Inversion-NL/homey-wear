@@ -1,5 +1,6 @@
 package com.xseth.homey;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
@@ -40,6 +41,8 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
     private WearableRecyclerView vOnOffList;
     // Path to app directory on system
     public static String appPath;
+    // ApplicationContext
+    public static Context context;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +54,8 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        appPath = this.getApplicationContext().getFilesDir().getAbsolutePath();
+        context = this.getApplicationContext();
+        appPath = context.getFilesDir().getAbsolutePath();
 
         // View used for notifications
         notifications = findViewById(R.id.notification);
