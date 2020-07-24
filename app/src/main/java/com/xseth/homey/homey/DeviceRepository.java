@@ -91,8 +91,13 @@ public class DeviceRepository {
         for(Device device : this.devices.getValue()){
             Device tmpDevice = newDevices.get(device.getId());
 
-            device.setOn(tmpDevice.getCapabilityValue(device.getCapability()));
-            this.update(device);
+            // If favorite Device is removed, tmpDevice will be None, so remove it
+            if(tmpDevice == null)
+                DeviceRepository.getInstance().deleteDevice(device);
+            else {
+                device.setOn(tmpDevice.getCapabilityValue(device.getCapability()));
+                this.update(device);
+            }
         }
     }
 
