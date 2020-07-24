@@ -73,8 +73,6 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
                 if (api.isLoggedIn()) {
                     Timber.i("G");
                     api.authenticateHomey();
-                    // Sync statuses of devices.
-                    DeviceRepository.getInstance().refreshDeviceStatuses();
 
                 } else {
                     Timber.w("No session, authenticating!");
@@ -116,6 +114,32 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
         // Top Navigation Drawer
         drawer = findViewById(R.id.action_drawer);
         drawer.setOnMenuItemClickListener(this);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        // Restart background thread
+        ColorRunner.resumeColorRunner();
+
+        // Sync statuses of devices.
+        DeviceRepository.getInstance().refreshDeviceStatuses();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        // Pause background thread
+        ColorRunner.pauseColorRunner();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        OAuth.stopOAuth();
+        ColorRunner.stopColorRunner();
     }
 
     @Override
@@ -161,12 +185,6 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
             vOnOffList.setVisibility(View.GONE);
             notifications.setVisibility(View.VISIBLE);
         });
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        OAuth.stopOAuth();
     }
 }
 
