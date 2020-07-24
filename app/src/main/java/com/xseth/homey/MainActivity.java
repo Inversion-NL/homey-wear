@@ -124,7 +124,9 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
         ColorRunner.resumeColorRunner();
 
         // Sync statuses of devices.
-        DeviceRepository.getInstance().refreshDeviceStatuses();
+        new Thread(() -> {
+            DeviceRepository.getInstance().refreshDeviceStatuses();
+        }).start();
     }
 
     @Override
