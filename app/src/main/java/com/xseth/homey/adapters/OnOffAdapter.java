@@ -1,11 +1,14 @@
 package com.xseth.homey.adapters;
 
 import android.annotation.SuppressLint;
+import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
+import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -40,7 +43,7 @@ public class OnOffAdapter extends RecyclerView.Adapter<OnOffAdapter.viewHolder>
      */
     public static class viewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         // Device fragment
-        public LinearLayout onOffFragment;
+        public FrameLayout onOffFragment;
         // View for showing device name
         public TextView onOffTitle;
         // View used for showing device icon
@@ -55,12 +58,12 @@ public class OnOffAdapter extends RecyclerView.Adapter<OnOffAdapter.viewHolder>
          */
         public viewHolder(LinearLayout view, RecyclerViewClickListener listener) {
             super(view);
-            onOffFragment = view;
+            onOffFragment = view.findViewById(R.id.onoff_fragment);
             onOffTitle = view.findViewById(R.id.message);
             onOffIcon = view.findViewById(R.id.icon);
             mListener = listener;
 
-            view.setOnClickListener(this);
+            onOffFragment.setOnClickListener(this);
         }
 
         @Override
@@ -80,7 +83,6 @@ public class OnOffAdapter extends RecyclerView.Adapter<OnOffAdapter.viewHolder>
     }
 
     // Replace the contents of a view (invoked by the layout manager)
-    @SuppressLint("ResourceAsColor")
     @Override
     public void onBindViewHolder(viewHolder holder, int position) {
         Device device = devices.get(position);
@@ -90,9 +92,10 @@ public class OnOffAdapter extends RecyclerView.Adapter<OnOffAdapter.viewHolder>
 
         // define background color
         int color_id = device.isOn() ? R.color.device_on : R.color.device_off;
-        int color = holder.onOffFragment.getContext().getResources().getColor(color_id);
-        holder.onOffFragment.getBackground().setColorFilter(new PorterDuffColorFilter(color,
-                PorterDuff.Mode.MULTIPLY));
+
+        GradientDrawable bgShape = (GradientDrawable)holder.onOffFragment.getBackground();
+        String color = holder.onOffFragment.getContext().getResources().getString(0+color_id);
+        bgShape.setColor(Color.parseColor(color));
     }
 
     @Override
@@ -112,11 +115,9 @@ public class OnOffAdapter extends RecyclerView.Adapter<OnOffAdapter.viewHolder>
                 DeviceRepository.getInstance().update(device);
 
                 int color_id = device.isOn() ? R.color.device_on : R.color.device_off;
-                int color = view.getContext().getResources().getColor(color_id);
-
-                view.getBackground().setColorFilter(new PorterDuffColorFilter(
-                        color, PorterDuff.Mode.MULTIPLY
-                ));
+                GradientDrawable bgShape = (GradientDrawable)view.getBackground();
+                String color = view.getContext().getResources().getString(0+color_id);
+                bgShape.setColor(Color.parseColor(color));
 
                 // If device is button, background never changes so notify via Toast message
                 if(device.isButton()) {
