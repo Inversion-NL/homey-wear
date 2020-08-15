@@ -8,31 +8,10 @@
     android:id="@+id/onoff_back"
     tools:context=".MainActivity">
 
-    <FrameLayout
+    <include layout="@layout/round_layout"
         android:id="@+id/notification"
-        android:layout_width="175dp"
-        android:layout_height="175dp"
-        android:layout_gravity="center"
-        android:background="@drawable/round_draw"
         android:onClick="onClick"
-        android:visibility="gone">
-
-        <ImageView
-            android:id="@+id/notification_icon"
-            android:layout_width="75dp"
-            android:layout_height="75dp"
-            android:layout_gravity="center" />
-
-        <TextView
-            android:id="@+id/notification_message"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:paddingTop="100dp"
-            android:textColor="#333333"
-            android:textSize="18sp" />
-
-    </FrameLayout>
+        android:visibility="gone"/>
 
     <androidx.wear.widget.WearableRecyclerView
         android:id="@+id/onoff_list"

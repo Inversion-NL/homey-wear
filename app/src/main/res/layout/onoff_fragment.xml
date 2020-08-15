@@ -9,25 +9,6 @@
     android:background="@drawable/round_draw"
     android:clickable="true">
 
-    <FrameLayout
-        android:layout_width="175dp"
-        android:layout_height="175dp">
-
-        <ImageView
-            android:id="@+id/onOffIcon"
-            android:layout_width="75dp"
-            android:layout_height="75dp"
-            android:layout_gravity="center" />
-
-        <TextView
-            android:id="@+id/onOffTitle"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:paddingTop="100dp"
-            android:textColor="#333333"
-            android:textSize="18sp" />
-
-    </FrameLayout>
+    <include layout="@layout/round_layout" />
 
 </LinearLayout>
