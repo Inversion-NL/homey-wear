@@ -59,6 +59,7 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
 
         // View used for notifications
         notifications = findViewById(R.id.notification);
+        notifications.setOnClickListener(this);
 
         // View used for rainbow background
         WearableDrawerLayout vOnOffBack = findViewById(R.id.onoff_back);
@@ -146,7 +147,7 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
 
     @Override
     public void onClick(View v) {
-        TextView message = findViewById(R.id.notification_message);
+        TextView message = notifications.findViewById(R.id.message);
 
         // Check if login notification is shown
         if(!message.getText().toString().equals(getResources().getString(R.string.login)))
@@ -177,8 +178,8 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
      * @param icon_id icon to show in fragment
      */
     public void setNotification(int message_id, int icon_id){
-        TextView message = findViewById(R.id.notification_message);
-        ImageView icon = findViewById(R.id.notification_icon);
+        TextView message = notifications.findViewById(R.id.message);
+        ImageView icon = findViewById(R.id.icon);
 
         message.setText(message_id);
         icon.setImageResource(icon_id);

@@ -56,8 +56,8 @@ public class OnOffAdapter extends RecyclerView.Adapter<OnOffAdapter.viewHolder>
         public viewHolder(LinearLayout view, RecyclerViewClickListener listener) {
             super(view);
             onOffFragment = view;
-            onOffTitle = view.findViewById(R.id.onOffTitle);
-            onOffIcon = view.findViewById(R.id.onOffIcon);
+            onOffTitle = view.findViewById(R.id.message);
+            onOffIcon = view.findViewById(R.id.icon);
             mListener = listener;
 
             view.setOnClickListener(this);
