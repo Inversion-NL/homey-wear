@@ -21,7 +21,7 @@ public class ColorRunner implements Runnable{
     // Amount of time in MS to wait between color switches
     public final int SLEEP = 500;
     // Resolution of color possibilities
-    public final int COLOR_SIZE = 500;
+    public final int COLOR_SIZE = 250;
     // Array depicting rainbow colors
     public int[] COLORS = new int[COLOR_SIZE];
     // View object to colorize
