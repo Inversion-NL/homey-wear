@@ -38,6 +38,14 @@ public class ColorRunner implements Runnable{
     }
 
     /**
+     * Retrieve a random color from generated rainbow color list
+     * @return random color from rainbow color list
+     */
+    public static int getRandomColor(){
+        return INSTANCE.chooseColor();
+    }
+
+    /**
      * Resume paused ColorRunner Thread
      */
     public static void resumeColorRunner(){
@@ -65,6 +73,16 @@ public class ColorRunner implements Runnable{
         for (int i = 0; i < COLORS.length; i++) {
             COLORS[i] = Color.HSVToColor(new float[]{(float) (jump*i), 1.0f, 1.0f});
         }
+    }
+
+    /**
+     * Retrieve a random color from generated rainbow color list
+     * @return random color from rainbow color list
+     */
+    public int chooseColor(){
+        Random r = new Random();
+        int color_index = r.nextInt(COLOR_SIZE);
+        return COLORS[color_index];
     }
 
     @Override
