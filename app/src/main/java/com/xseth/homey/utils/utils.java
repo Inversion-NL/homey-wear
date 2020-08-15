@@ -2,18 +2,26 @@ package com.xseth.homey.utils;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.RotateDrawable;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 import android.support.wearable.activity.ConfirmationActivity;
+import android.widget.ProgressBar;
 
 import androidx.security.crypto.EncryptedFile;
 import androidx.security.crypto.MasterKey;
+
+import com.xseth.homey.R;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.GeneralSecurityException;
+import java.util.Random;
+
+import timber.log.Timber;
 
 public class utils {
 
@@ -132,5 +140,30 @@ public class utils {
         return new MasterKey.Builder(ctx)
                 .setKeyGenParameterSpec(spec)
                 .build();
+    }
+
+    /**
+     * Randomize characteristics of progress bar. Such as color & start/stop locations
+     * @param bar ProgressBar to randomize
+     */
+    public static void randomiseProgressBar(ProgressBar bar){
+        Random r = new Random();
+
+        int startDegree = r.nextInt(360);
+        int stopDegree = (startDegree + 359) % 360;
+
+        RotateDrawable shape = (RotateDrawable) bar.getIndeterminateDrawable();
+        //shape.setFromDegrees(stopDegree);
+        //shape.setToDegrees(startDegree);
+
+        int randomColor = ColorRunner.getRandomColor();
+        int[] colors = {randomColor, 00000000};
+
+        Timber.v("Generated random progress bar: %d -> %d, color: %s", startDegree,
+                stopDegree, randomColor);
+
+        // Get Gradient
+        GradientDrawable gradientDrawable = (GradientDrawable) shape.getDrawable();
+        gradientDrawable.setColors(colors);
     }
 }

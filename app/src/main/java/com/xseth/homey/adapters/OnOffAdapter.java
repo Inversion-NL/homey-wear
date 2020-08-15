@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -19,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.xseth.homey.R;
 import com.xseth.homey.homey.models.Device;
 import com.xseth.homey.homey.DeviceRepository;
+import com.xseth.homey.utils.utils;
 
 import java.util.List;
 import java.util.Map;
@@ -48,6 +50,8 @@ public class OnOffAdapter extends RecyclerView.Adapter<OnOffAdapter.viewHolder>
         public TextView onOffTitle;
         // View used for showing device icon
         public ImageView onOffIcon;
+        // View progressbar
+        public ProgressBar progressBar;
         // Click listener for recycle view
         private RecyclerViewClickListener mListener;
 
@@ -61,8 +65,10 @@ public class OnOffAdapter extends RecyclerView.Adapter<OnOffAdapter.viewHolder>
             onOffFragment = view.findViewById(R.id.onoff_fragment);
             onOffTitle = view.findViewById(R.id.message);
             onOffIcon = view.findViewById(R.id.icon);
+            progressBar = view.findViewById(R.id.progressBar);
             mListener = listener;
 
+            utils.randomiseProgressBar(progressBar);
             onOffFragment.setOnClickListener(this);
         }
 
