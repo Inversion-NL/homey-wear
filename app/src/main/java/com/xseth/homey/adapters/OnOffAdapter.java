@@ -39,6 +39,10 @@ public class OnOffAdapter extends RecyclerView.Adapter<OnOffAdapter.viewHolder>
 
     // Array of data objects related to adapter
     private List<Device> devices;
+    // Boolean indicating if items in list are loading
+    private boolean loading = false;
+    // Boolean indicating if specific item should show progressBar
+    private int loadingIndex = -1;
 
     /**
      * Class used to contain view for displaying devices
@@ -78,6 +82,25 @@ public class OnOffAdapter extends RecyclerView.Adapter<OnOffAdapter.viewHolder>
         }
     }
 
+    /**
+     * Indicate whether a specific item, indicated by index, should show progressbar loading.
+     * @param loading if items in list should show progressBar loading
+     * @param index index of item in list for which to show/not show progressbar
+     */
+    public void setLoading(boolean loading, int index) {
+        this.loading = loading;
+        this.loadingIndex = index;
+        this.notifyDataSetChanged();
+    }
+
+    /**
+     * Indicate whether all items in the Recyclerview should show progressbar loading.
+     * @param loading if all items in list should show progressBar loading
+     */
+    public void setLoading(boolean loading) {
+        this.setLoading(loading, -1);
+    }
+
     @Override
     public OnOffAdapter.viewHolder onCreateViewHolder(ViewGroup parent,
                                                      int viewType) {
@@ -88,13 +111,19 @@ public class OnOffAdapter extends RecyclerView.Adapter<OnOffAdapter.viewHolder>
         return new viewHolder(v, this);
     }
 
-    // Replace the contents of a view (invoked by the layout manager)
     @Override
+    // Replace the contents of a view (invoked by the layout manager)
     public void onBindViewHolder(viewHolder holder, int position) {
         Device device = devices.get(position);
 
         holder.onOffIcon.setImageBitmap(device.getIconImage());
         holder.onOffTitle.setText(device.getName());
+
+        // Indicate whether progressBar should be shown
+        if(loading && (loadingIndex == position || loadingIndex == -1))
+            holder.progressBar.setVisibility(View.VISIBLE);
+        else
+            holder.progressBar.setVisibility(View.INVISIBLE);
 
         // define background color
         int color_id = device.isOn() ? R.color.device_on : R.color.device_off;
@@ -107,6 +136,7 @@ public class OnOffAdapter extends RecyclerView.Adapter<OnOffAdapter.viewHolder>
     @Override
     public void onClick(View view, int position) {
         Device device = this.devices.get(position);
+        setLoading(true, position);
 
         device.turnOnOff().enqueue(new Callback<Map<String, Object>>() {
             @Override
@@ -130,10 +160,13 @@ public class OnOffAdapter extends RecyclerView.Adapter<OnOffAdapter.viewHolder>
                     String text = view.getResources().getString(R.string.button_press, device.getName());
                     Toast.makeText(view.getContext(), text, Toast.LENGTH_LONG).show();
                 }
+
+                setLoading(false, position);
             }
 
             @Override
             public void onFailure(Call call, Throwable t) {
+                setLoading(false, position);
                 Timber.e(t, "Failed to turn onoff");
                 // Show popup if fail to turn on or off
                 Toast.makeText(view.getContext(), R.string.fail_turnonoff, Toast.LENGTH_LONG).show();
@@ -146,6 +179,8 @@ public class OnOffAdapter extends RecyclerView.Adapter<OnOffAdapter.viewHolder>
      * @param devices devices list to set
      */
     public void setDevices(List<Device> devices){
+        Timber.d("on setDevices");
+
         if(devices.size() > 0) {
             this.devices = devices;
             this.notifyDataSetChanged();

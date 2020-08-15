@@ -4,7 +4,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.net.Uri;
 import android.support.wearable.authentication.OAuthClient;
+import android.view.View;
 
+import com.xseth.homey.MainActivity;
 import com.xseth.homey.R;
 import com.xseth.homey.homey.HomeyAPI;
 
@@ -21,9 +23,9 @@ public class OAuth {
     private static class MyOAuthCallback extends OAuthClient.Callback {
 
         // Instance of activity starting OAuth
-        private Activity activity;
+        private MainActivity activity;
 
-        private MyOAuthCallback(Activity activity){
+        private MyOAuthCallback(MainActivity activity){
             this.activity = activity;
         }
 
@@ -38,6 +40,13 @@ public class OAuth {
             new Thread(() -> {
                 try {
                     HomeyAPI.getAPI().setToken(token);
+
+                    // 'Remove' notifications and show default layout
+                    this.activity.runOnUiThread(() -> {
+                        this.activity.vOnOffList.setVisibility(View.VISIBLE);
+                        this.activity.notifications.setVisibility(View.GONE);
+                        this.activity.notificationsProgress.setVisibility(View.INVISIBLE);
+                    });
                 } catch (Exception e){
                     Timber.e(e, "Failed to parse Oauth code");
                     utils.showConfirmationFailure(activity.getApplicationContext(), R.string.failure_authenticate);
@@ -58,6 +67,7 @@ public class OAuth {
                 } catch (InterruptedException ignored) {}
 
                 utils.showConfirmationFailure(activity.getApplicationContext(), R.string.failure_authenticate);
+                activity.runOnUiThread(() -> this.activity.notificationsProgress.setVisibility(View.INVISIBLE));
             }).start();
         }
     }
@@ -74,7 +84,7 @@ public class OAuth {
     /**
      * Start OAUTH2 authorization procedure
      */
-    public static void sendAuthorization(Activity a){
+    public static void sendAuthorization(MainActivity a){
         HomeyAPI api = HomeyAPI.getAPI();
         String url = api.getLoginURL();
 

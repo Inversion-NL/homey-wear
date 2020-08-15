@@ -6,6 +6,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.fragment.app.FragmentActivity;
@@ -36,9 +37,13 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
     // Bottom drawer object
     private WearableActionDrawerView drawer;
     // Layout used in notifications
-    private FrameLayout notifications;
+    public FrameLayout notifications;
+    // ProgressBar in notifications view
+    public ProgressBar notificationsProgress;
     // Recyclerview containing devices
-    private WearableRecyclerView vOnOffList;
+    public WearableRecyclerView vOnOffList;
+    // Adapter for showing onoff devices
+    private OnOffAdapter onOffAdapter;
     // Path to app directory on system
     public static String appPath;
     // ApplicationContext
@@ -57,13 +62,16 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
         context = this.getApplicationContext();
         appPath = context.getFilesDir().getAbsolutePath();
 
+        // View used for rainbow background
+        WearableDrawerLayout vOnOffBack = findViewById(R.id.onoff_back);
+        ColorRunner.startColorRunner(vOnOffBack);
+
         // View used for notifications
         notifications = findViewById(R.id.notification);
         notifications.setOnClickListener(this);
 
-        // View used for rainbow background
-        WearableDrawerLayout vOnOffBack = findViewById(R.id.onoff_back);
-        ColorRunner.startColorRunner(vOnOffBack);
+        notificationsProgress = notifications.findViewById(R.id.progressBar);
+        utils.randomiseProgressBar(notificationsProgress);
 
         // Verify if there is authentication/internet in background
         new Thread(() -> {
@@ -99,7 +107,7 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
         vOnOffList.setLayoutManager(new LinearLayoutManager(this));
 
         // specify an adapter (see also next example)
-        OnOffAdapter onOffAdapter = new OnOffAdapter();
+        onOffAdapter = new OnOffAdapter();
         vOnOffList.setAdapter(onOffAdapter);
 
         // Add PagerSnapHelper to vOnOffList
@@ -108,13 +116,13 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
 
         // Get ViewModelProvider, and set LiveData devices list as input for adapter
         deviceViewModel = new ViewModelProvider(this).get(DeviceViewModel.class);
-        deviceViewModel.getDevices().observe(this, devices -> {
-            onOffAdapter.setDevices(devices);
-        });
+        deviceViewModel.getDevices().observe(this, onOffAdapter::setDevices);
 
         // Top Navigation Drawer
         drawer = findViewById(R.id.action_drawer);
         drawer.setOnMenuItemClickListener(this);
+
+        Timber.d("Finish onCreate");
     }
 
     @Override
@@ -123,10 +131,14 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
 
         // Restart background thread
         ColorRunner.resumeColorRunner();
+        onOffAdapter.setLoading(true);
 
         // Sync statuses of devices.
         new Thread(() -> {
             DeviceRepository.getInstance().refreshDeviceStatuses();
+
+            // Device statusses updated, remove loading
+            runOnUiThread(() -> onOffAdapter.setLoading(false));
         }).start();
     }
 
@@ -154,6 +166,8 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
             return;
 
         utils.showConfirmationPhone(this.getApplicationContext(), R.string.authenticate);
+        notificationsProgress.setVisibility(View.VISIBLE);
+
         OAuth.sendAuthorization(this);
     }
 
@@ -163,12 +177,16 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
 
         switch (itemId) {
             case R.id.device_refresh:
+                this.onOffAdapter.setLoading(true);
                 this.deviceViewModel.refreshDevices();
+
+                // Device refreshed, remove loading
+                runOnUiThread(() -> onOffAdapter.setLoading(false));
+
                 break;
         }
 
         drawer.getController().closeDrawer();
-
         return true;
     }
 
