@@ -22,4 +22,13 @@
         android:textColor="#333333"
         android:textSize="18sp" />
 
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:indeterminate="true"
+        android:indeterminateDrawable="@drawable/progressbar"
+        android:visibility="invisible" />
+
+
 </FrameLayout>
