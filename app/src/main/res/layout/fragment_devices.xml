@@ -5,10 +5,14 @@
     android:layout_height="match_parent"
     tools:context=".fragments.DevicesFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+    <androidx.wear.widget.WearableRecyclerView
+        android:id="@+id/onoff_list"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp" />
 
 </FrameLayout>
