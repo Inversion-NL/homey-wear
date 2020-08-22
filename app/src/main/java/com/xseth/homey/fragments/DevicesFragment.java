@@ -3,42 +3,60 @@ package com.xseth.homey.fragments;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.PagerSnapHelper;
+import androidx.wear.widget.WearableRecyclerView;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.xseth.homey.R;
+import com.xseth.homey.adapters.DeviceViewModel;
+import com.xseth.homey.adapters.OnOffAdapter;
 
 /**
  * A simple {@link Fragment} subclass.
- * Use the {@link DevicesFragment#newInstance} factory method to
- * create an instance of this fragment.
  */
 public class DevicesFragment extends Fragment {
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment DevicesFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static DevicesFragment newInstance(String param1, String param2) {
-        DevicesFragment fragment = new DevicesFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
+    // Recyclerview containing devices
+    public WearableRecyclerView vOnOffList;
+    // Adapter for showing onoff devices
+    private OnOffAdapter onOffAdapter;
+    // deviceViewModel for holding device data
+    private DeviceViewModel deviceViewModel;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_devices, container, false);
+        View view = inflater.inflate(R.layout.fragment_devices, container, false);
+
+        // Recycler view containing devices
+        vOnOffList = view.findViewById(R.id.onoff_list);
+        vOnOffList.requestFocus(); // Focus required for scrolling via hw-buttons
+
+        // use a linear layout manager
+        vOnOffList.setLayoutManager(new LinearLayoutManager(getActivity()));
+
+        // specify an adapter (see also next example)
+        onOffAdapter = new OnOffAdapter();
+        vOnOffList.setAdapter(onOffAdapter);
+
+        // Add PagerSnapHelper to vOnOffList
+        PagerSnapHelper snapHelper = new PagerSnapHelper();
+        snapHelper.attachToRecyclerView(vOnOffList);
+
+        // Get ViewModelProvider, and set LiveData devices list as input for adapter
+        deviceViewModel = new ViewModelProvider(this).get(DeviceViewModel.class);
+        deviceViewModel.getDevices().observe(getActivity(), onOffAdapter::setDevices);
+
+        return view;
+    }
+
+    public void setLoading(boolean loading){
+        //getActivity().runOnUiThread(() -> onOffAdapter.setLoading(false));
     }
 }

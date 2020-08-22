@@ -43,7 +43,7 @@ public class OAuth {
 
                     // 'Remove' notifications and show default layout
                     this.activity.runOnUiThread(() -> {
-                        this.activity.vOnOffList.setVisibility(View.VISIBLE);
+                        this.activity.mPager.setVisibility(View.VISIBLE);
                         this.activity.notifications.setVisibility(View.GONE);
                         this.activity.notificationsProgress.setVisibility(View.INVISIBLE);
                     });

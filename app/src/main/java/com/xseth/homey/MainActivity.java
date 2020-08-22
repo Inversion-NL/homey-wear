@@ -13,12 +13,16 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.PagerSnapHelper;
+import androidx.viewpager.widget.ViewPager;
 import androidx.wear.widget.WearableRecyclerView;
 import androidx.wear.widget.drawer.WearableActionDrawerView;
 import androidx.wear.widget.drawer.WearableDrawerLayout;
 
 import com.xseth.homey.adapters.DeviceViewModel;
 import com.xseth.homey.adapters.OnOffAdapter;
+import com.xseth.homey.adapters.PagerAdapter;
+import com.xseth.homey.fragments.DevicesFragment;
+import com.xseth.homey.fragments.FlowsFragment;
 import com.xseth.homey.homey.DeviceRepository;
 import com.xseth.homey.utils.ColorRunner;
 import com.xseth.homey.homey.HomeyAPI;
@@ -32,22 +36,20 @@ import timber.log.Timber;
 public class MainActivity extends FragmentActivity implements MenuItem.OnMenuItemClickListener,
         View.OnClickListener{
 
-    // deviceViewModel for holding device data
-    private DeviceViewModel deviceViewModel;
     // Bottom drawer object
     private WearableActionDrawerView drawer;
     // Layout used in notifications
     public FrameLayout notifications;
     // ProgressBar in notifications view
     public ProgressBar notificationsProgress;
-    // Recyclerview containing devices
-    public WearableRecyclerView vOnOffList;
-    // Adapter for showing onoff devices
-    private OnOffAdapter onOffAdapter;
     // Path to app directory on system
     public static String appPath;
     // ApplicationContext
     public static Context context;
+
+    public ViewPager mPager;
+    private DevicesFragment devicesFragment;
+    private FlowsFragment flowsFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,14 +59,24 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
 
         // Create view
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
 
         context = this.getApplicationContext();
         appPath = context.getFilesDir().getAbsolutePath();
 
-        // View used for rainbow background
-        WearableDrawerLayout vOnOffBack = findViewById(R.id.onoff_back);
-        ColorRunner.startColorRunner(vOnOffBack);
+        // Create all views
+        setupViews();
+
+        // Verify if there is authentication/internet in background
+        new Thread(this::authenticateHomey).start();
+        Timber.d("Finish onCreate");
+    }
+
+    /**
+     * Setup all view related items in MainActivity
+     */
+    private void setupViews(){
+        setContentView(R.layout.activity_main);
+        ColorRunner.startColorRunner(findViewById(R.id.onoff_back));
 
         // View used for notifications
         notifications = findViewById(R.id.notification);
@@ -73,56 +85,49 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
         notificationsProgress = notifications.findViewById(R.id.progressBar);
         utils.randomiseProgressBar(notificationsProgress);
 
-        // Verify if there is authentication/internet in background
-        new Thread(() -> {
-            try {
-                // Start the HomeyAPI
-                HomeyAPI api = HomeyAPI.getAPI();
-
-                if (api.isLoggedIn()) {
-                    Timber.i("G");
-                    api.authenticateHomey();
-
-                } else {
-                    Timber.w("No session, authenticating!");
-                    OAuth.startOAuth(this);
-                    setNotification(R.string.login, R.drawable.ic_login);
-                }
-
-            // No internet connection, show notification
-            } catch(UnknownHostException uhe){
-                setNotification(R.string.no_internet, R.drawable.ic_cloud_off);
-
-            }catch(Exception e) {
-                Timber.e(e);
-                setNotification(R.string.error, R.drawable.ic_error);
-            }
-        }).start();
-
-        // Recycler view containing devices
-        vOnOffList = findViewById(R.id.onoff_list);
-        vOnOffList.requestFocus(); // Focus required for scrolling via hw-buttons
-
-        // use a linear layout manager
-        vOnOffList.setLayoutManager(new LinearLayoutManager(this));
-
-        // specify an adapter (see also next example)
-        onOffAdapter = new OnOffAdapter();
-        vOnOffList.setAdapter(onOffAdapter);
-
-        // Add PagerSnapHelper to vOnOffList
-        PagerSnapHelper snapHelper = new PagerSnapHelper();
-        snapHelper.attachToRecyclerView(vOnOffList);
-
-        // Get ViewModelProvider, and set LiveData devices list as input for adapter
-        deviceViewModel = new ViewModelProvider(this).get(DeviceViewModel.class);
-        deviceViewModel.getDevices().observe(this, onOffAdapter::setDevices);
-
         // Top Navigation Drawer
         drawer = findViewById(R.id.action_drawer);
         drawer.setOnMenuItemClickListener(this);
 
-        Timber.d("Finish onCreate");
+        // Create pagerAdapters
+        final PagerAdapter adapter = new PagerAdapter(getSupportFragmentManager());
+
+        devicesFragment = new DevicesFragment();
+        flowsFragment = new FlowsFragment();
+
+        adapter.addFragment(devicesFragment);
+        adapter.addFragment(flowsFragment);
+
+        mPager = findViewById(R.id.pager);
+        mPager.setAdapter(adapter);
+    }
+
+    /**
+     * Get active session from Athom Homey, if fails show login sequence.
+     */
+    private void authenticateHomey(){
+        try {
+            // Start the HomeyAPI
+            HomeyAPI api = HomeyAPI.getAPI();
+
+            if (api.isLoggedIn()) {
+                Timber.i("Got session");
+                api.authenticateHomey();
+
+            } else {
+                Timber.w("No session, authenticating!");
+                OAuth.startOAuth(this);
+                setNotification(R.string.login, R.drawable.ic_login);
+            }
+
+            // No internet connection, show notification
+        } catch(UnknownHostException uhe){
+            setNotification(R.string.no_internet, R.drawable.ic_cloud_off);
+
+        }catch(Exception e) {
+            Timber.e(e);
+            setNotification(R.string.error, R.drawable.ic_error);
+        }
     }
 
     @Override
@@ -131,14 +136,15 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
 
         // Restart background thread
         ColorRunner.resumeColorRunner();
-        onOffAdapter.setLoading(true);
+        devicesFragment.setLoading(true);
 
         // Sync statuses of devices.
         new Thread(() -> {
+            DeviceRepository.buildInstance(this.getApplication());
             DeviceRepository.getInstance().refreshDeviceStatuses();
 
             // Device statusses updated, remove loading
-            runOnUiThread(() -> onOffAdapter.setLoading(false));
+            devicesFragment.setLoading(false);
         }).start();
     }
 
@@ -177,12 +183,11 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
 
         switch (itemId) {
             case R.id.device_refresh:
-                this.onOffAdapter.setLoading(true);
-                this.deviceViewModel.refreshDevices();
+                devicesFragment.setLoading(true);
+                //this.deviceViewModel.refreshDevices();
 
                 // Device refreshed, remove loading
-                runOnUiThread(() -> onOffAdapter.setLoading(false));
-
+                devicesFragment.setLoading(false);
                 break;
         }
 
@@ -203,7 +208,7 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
         icon.setImageResource(icon_id);
 
         runOnUiThread(() -> {
-            vOnOffList.setVisibility(View.GONE);
+            mPager.setVisibility(View.GONE);
             notifications.setVisibility(View.VISIBLE);
         });
     }
