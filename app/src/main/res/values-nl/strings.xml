@@ -9,4 +9,5 @@
     <string name="error">Onbekende fout!</string>
     <string name="login">Geen sessie, login!</string>
     <string name="button_press">%1$s is ingedrukt</string>
+    <string name="fail_trigger_flow">Probleem met het starten van flow</string>
 </resources>
