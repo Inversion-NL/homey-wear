@@ -110,12 +110,17 @@ public class FlowAdapter extends RecyclerView.Adapter<FlowAdapter.viewHolder>
     public void onBindViewHolder(viewHolder holder, int position) {
         Flow device = flows.get(position);
         holder.onOffTitle.setText(device.getName());
+        holder.onOffIcon.setImageResource(R.drawable.ic_play_arrow);
 
         // Indicate whether progressBar should be shown
         if(loading && (loadingIndex == position || loadingIndex == -1))
             holder.progressBar.setVisibility(View.VISIBLE);
         else
             holder.progressBar.setVisibility(View.INVISIBLE);
+
+        GradientDrawable bgShape = (GradientDrawable)holder.onOffFragment.getBackground();
+        String color = holder.onOffFragment.getContext().getResources().getString(0+R.color.device_on);
+        bgShape.setColor(Color.parseColor(color));
     }
 
     @Override
@@ -123,10 +128,15 @@ public class FlowAdapter extends RecyclerView.Adapter<FlowAdapter.viewHolder>
         Flow flow = this.flows.get(position);
         setLoading(true, position);
 
+        ImageView icon = view.findViewById(R.id.icon);
+        icon.setImageResource(R.drawable.ic_play_arrow);
+
         flow.triggerFlow().enqueue(new Callback<Map<String, Object>>() {
             @Override
             public void onResponse(Call<Map<String, Object>> call, Response<Map<String, Object>> response) {
                 setLoading(false, position);
+                ImageView icon = view.findViewById(R.id.icon);
+                icon.setImageResource(R.drawable.ic_play_arrow);
             }
 
             @Override
