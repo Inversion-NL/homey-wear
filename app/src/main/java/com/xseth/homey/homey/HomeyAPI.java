@@ -2,6 +2,7 @@ package com.xseth.homey.homey;
 
 import com.xseth.homey.BuildConfig;
 import com.xseth.homey.homey.models.Device;
+import com.xseth.homey.homey.models.Flow;
 import com.xseth.homey.homey.models.Homey;
 import com.xseth.homey.homey.models.Token;
 import com.xseth.homey.homey.models.User;
@@ -106,7 +107,7 @@ public class HomeyAPI {
 
         // Set level BASIC only in debugging mode
         if (BuildConfig.DEBUG)
-            httpLogger.setLevel(HttpLoggingInterceptor.Level.BASIC);
+            httpLogger.setLevel(HttpLoggingInterceptor.Level.BODY);
     }
 
     /**
@@ -286,6 +287,32 @@ public class HomeyAPI {
     }
 
     /**
+     * Get a list of favorite flows
+     * @return list of favorite flows
+     */
+    public Map<String, Flow> getFlows(){
+        // LinkedHashMap keeps order of keys
+        Map<String, Flow> newList = new LinkedHashMap<>();
+
+        try {
+            Call<Map<String, Flow>> call = homeyService.getFlows();
+            Map<String, Flow> flows = call.execute().body();
+
+            Call<User> userCall = homeyService.getUser();
+            User user = userCall.execute().body();
+
+            for(String id : user.getFlowFavorites()) {
+                Flow flow = flows.get(id);
+                newList.put(id, flow);
+            }
+        } catch (IOException ioe){
+            Timber.e(ioe, "Failed to retrieve devices");
+        }
+
+        return newList;
+    }
+
+    /**
      * Turn device on or off
      * @param device device to turn on or off
      */
@@ -300,5 +327,13 @@ public class HomeyAPI {
                 device.getCapability(),
                 jsonParams
         );
+    }
+
+    /**
+     * Start flow
+     * @param flow flow to start
+     */
+    public Call<Boolean> triggerFlow(Flow flow){
+        return homeyService.triggerFlow(flow.getId());
     }
 }

@@ -8,15 +8,17 @@ import androidx.room.RoomDatabase;
 import androidx.room.TypeConverters;
 
 import com.xseth.homey.homey.models.Device;
+import com.xseth.homey.homey.models.Flow;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@Database(entities = {Device.class}, version = 11, exportSchema = false)
+@Database(entities = {Device.class, Flow.class}, version = 12, exportSchema = false)
 @TypeConverters({BitmapConverter.class})
 public abstract class HomeyRoomDatabase extends RoomDatabase {
 
     public abstract DeviceDAO deviceDAO();
+    public abstract FlowDAO flowDAO();
 
     private static volatile HomeyRoomDatabase INSTANCE;
     private static final int NUMBER_OF_THREADS = 4;

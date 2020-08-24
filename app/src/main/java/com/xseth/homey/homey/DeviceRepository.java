@@ -5,7 +5,9 @@ import android.app.Application;
 import androidx.lifecycle.LiveData;
 
 import com.xseth.homey.homey.models.Device;
+import com.xseth.homey.homey.models.Flow;
 import com.xseth.homey.storage.DeviceDAO;
+import com.xseth.homey.storage.FlowDAO;
 import com.xseth.homey.storage.HomeyRoomDatabase;
 
 import java.util.List;
@@ -19,8 +21,11 @@ public class DeviceRepository {
     private static DeviceRepository instance;
     // Device DAO for room access
     private DeviceDAO deviceDAO;
+    private FlowDAO flowDAO;
     // LiveData of devices
     private LiveData<List<Device>> devices;
+    // LiveData of flows
+    private LiveData<List<Flow>> flows;
 
     /**
      * Get instance of DeviceRepository
@@ -47,7 +52,9 @@ public class DeviceRepository {
     public DeviceRepository(Application application) {
         HomeyRoomDatabase db = HomeyRoomDatabase.getDatabase(application);
         deviceDAO = db.deviceDAO();
+        flowDAO = db.flowDAO();
         devices = deviceDAO.getDevices();
+        flows = flowDAO.getFlows();
     }
 
     /**
@@ -73,6 +80,30 @@ public class DeviceRepository {
         }).start();
 
         return devices;
+    }
+
+    /**
+     * Get list of available devices
+     * @param force if force to pull device list from API
+     * @return livedata list of devices
+     */
+    public synchronized LiveData<List<Flow>> getAllFlows(boolean force) {
+        new Thread(() -> {
+            if(!flowDAO.hasFlows() || force) {
+                Timber.i("No saved devices, gathering");
+                HomeyAPI api = HomeyAPI.getAPI();
+
+                // Wait for HomeyAPI to be ready
+                api.waitForHomeyAPI();
+
+                // Save the devices in DB
+                for (Flow flow : api.getFlows().values()) {
+                    this.insert(flow);
+                }
+            }
+        }).start();
+
+        return flows;
     }
 
     /**
@@ -110,6 +141,14 @@ public class DeviceRepository {
     }
 
     /**
+     * Get list of flows
+     * @return livedata list of flows
+     */
+    public synchronized LiveData<List<Flow>> getAllFlows() {
+        return this.getAllFlows(false);
+    }
+
+    /**
      * Add device to DB
      * @param device device to add
      */
@@ -117,6 +156,17 @@ public class DeviceRepository {
         HomeyRoomDatabase.databaseWriteExecutor.execute(() -> {
             Timber.i("Device %s, %s --> %s", device.getName(), device.getCapability(), device.isOn());
             deviceDAO.insert(device);
+        });
+    }
+
+    /**
+     * Add flow to DB
+     * @param flow flow to add
+     */
+    public void insert(final Flow flow) {
+        HomeyRoomDatabase.databaseWriteExecutor.execute(() -> {
+            Timber.i("Flow %s", flow.getName());
+            flowDAO.insert(flow);
         });
     }
 
@@ -147,6 +197,15 @@ public class DeviceRepository {
     public void deleteDevices(){
         HomeyRoomDatabase.databaseWriteExecutor.execute(() -> {
             deviceDAO.deleteAll();
+        });
+    }
+
+    /**
+     * Delete all flows in room
+     */
+    public void deleteFlows(){
+        HomeyRoomDatabase.databaseWriteExecutor.execute(() -> {
+            flowDAO.deleteAll();
         });
     }
 

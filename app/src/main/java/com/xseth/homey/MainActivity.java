@@ -184,7 +184,9 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
         switch (itemId) {
             case R.id.device_refresh:
                 devicesFragment.setLoading(true);
-                //this.deviceViewModel.refreshDevices();
+
+                flowsFragment.refreshFlows();
+                devicesFragment.refreshDevices();
 
                 // Device refreshed, remove loading
                 devicesFragment.setLoading(false);

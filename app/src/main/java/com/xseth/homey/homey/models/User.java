@@ -43,4 +43,10 @@ public class User {
      * @return list of device ids of favorite devices
      */
     public List<String> getDeviceFavorites() { return this.properties.get("favoriteDevices"); }
+
+    /**
+     * Get a list of favorite flows from User
+     * @return list of device ids of favorite flows
+     */
+    public List<String> getFlowFavorites() { return this.properties.get("favoriteFlows"); }
 }

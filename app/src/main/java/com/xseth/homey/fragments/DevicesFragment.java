@@ -56,6 +56,10 @@ public class DevicesFragment extends Fragment {
         return view;
     }
 
+    public void refreshDevices(){
+        deviceViewModel.refreshDevices();
+    }
+
     public void setLoading(boolean loading){
         //getActivity().runOnUiThread(() -> onOffAdapter.setLoading(false));
     }
