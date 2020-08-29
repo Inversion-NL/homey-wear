@@ -9,10 +9,10 @@ android {
 
     defaultConfig {
         applicationId "com.xseth.homey"
-        minSdkVersion 28
+        minSdkVersion 25
         targetSdkVersion 29
-        versionCode 2
-        versionName "1.1.0"
+        versionCode 3
+        versionName "1.1.1"
 
         // should correspond to key/value pairs inside the file
         buildConfigField("String", "ATHOM_CLIENT_ID", properties.getProperty('CLIENT_ID'))

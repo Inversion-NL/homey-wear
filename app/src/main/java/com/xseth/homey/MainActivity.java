@@ -64,7 +64,7 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
 
         // View used for rainbow background
         WearableDrawerLayout vOnOffBack = findViewById(R.id.onoff_back);
-        ColorRunner.startColorRunner(vOnOffBack);
+        ColorRunner.startColorRunner(this, vOnOffBack);
 
         // View used for notifications
         notifications = findViewById(R.id.notification);
