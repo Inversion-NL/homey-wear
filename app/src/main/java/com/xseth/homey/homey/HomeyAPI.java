@@ -16,6 +16,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -197,10 +198,14 @@ public class HomeyAPI {
      * @return login url used by OAUTH2
      */
     public String getLoginURL() {
+        // Use StringJoiner instead of `String.join` to support API25
+        StringJoiner sj = new StringJoiner(",");
+        for(String scope : SCOPES) sj.add(scope);
+
         Request request = cloudService.getLoginURL(
                             CLIENT_ID,
                             RETURN_URL,
-                            String.join(",", SCOPES)
+                            sj.toString()
         ).request();
 
         return request.url().toString();
