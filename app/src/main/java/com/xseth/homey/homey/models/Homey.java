@@ -1,16 +1,27 @@
 package com.xseth.homey.homey.models;
 
+import com.google.gson.annotations.SerializedName;
+
 public class Homey {
 
     // Homey id
+    @SerializedName("_id")
     private String _id;
+
     // Homey name
+    @SerializedName("name")
     private String name;
+
     // local URL used for accessing Homey API locally unsecure (HTTP)
+    @SerializedName("localUrl")
     private String localUrl;
+
     // URL used for accessing Homey API locally securely (HTTPS)
+    @SerializedName("localUrlSecure")
     private String localUrlSecure;
+
     // URL used for accessing Homey API globally securely (HTTPS)
+    @SerializedName("remoteUrl")
     private String remoteUrl;
 
     /**

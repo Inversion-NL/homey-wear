@@ -76,7 +76,7 @@ public class MainActivity extends FragmentActivity implements MenuItem.OnMenuIte
      */
     private void setupViews(){
         setContentView(R.layout.activity_main);
-        ColorRunner.startColorRunner(findViewById(R.id.onoff_back));
+        ColorRunner.startColorRunner(this, findViewById(R.id.onoff_back));
 
         // View used for notifications
         notifications = findViewById(R.id.notification);

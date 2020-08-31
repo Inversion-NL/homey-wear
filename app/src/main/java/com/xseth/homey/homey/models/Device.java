@@ -8,6 +8,7 @@ import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
+import com.google.gson.annotations.SerializedName;
 import com.xseth.homey.homey.HomeyAPI;
 
 import java.io.IOException;
@@ -27,10 +28,12 @@ public class Device {
     // Device ID
     @PrimaryKey
     @NonNull
+    @SerializedName("id")
     private String id;
 
     // Device Name
     @NonNull
+    @SerializedName("name")
     private String name;
 
     // Device on or off
@@ -46,10 +49,12 @@ public class Device {
 
     // Capabilities Object returned by API
     @Ignore
+    @SerializedName("capabilitiesObj")
     private Map<String, Map<String, Object>> capabilitiesObj;
 
     // Icon Object returned by API, containing icon IDs
     @Ignore
+    @SerializedName("iconObj")
     private Map<String, String> iconObj;
 
     /**

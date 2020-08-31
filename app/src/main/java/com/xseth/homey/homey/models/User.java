@@ -1,17 +1,26 @@
 package com.xseth.homey.homey.models;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.List;
 import java.util.Map;
 
 public class User {
 
     // First name of user
+    @SerializedName("firstname")
     private String firstname;
+
     // Last name of user
+    @SerializedName("lastname")
     private String lastname;
+
     // List of Homeys currently in control by user
+    @SerializedName("homeys")
     private List<Homey> homeys;
+
     // List of properties of user, mainly favorites list
+    @SerializedName("properties")
     private Map<String, List<String>> properties;
 
     /**

@@ -1,5 +1,6 @@
 package com.xseth.homey.utils;
 
+import android.app.Activity;
 import android.graphics.Color;
 import android.view.View;
 
@@ -26,14 +27,16 @@ public class ColorRunner implements Runnable{
     public int[] COLORS = new int[COLOR_SIZE];
     // View object to colorize
     private View view;
+    // View object to colorize
+    private Activity activity;
 
     /**
      * Start the ColorRunner, thread which changes background color
      * @param view View for which background color is updated
      */
-    public static void startColorRunner(View view){
+    public static void startColorRunner(Activity activity, View view){
         // Change color in background
-        INSTANCE = new ColorRunner(view);
+        INSTANCE = new ColorRunner(activity, view);
         new Thread(INSTANCE).start();
     }
 
@@ -66,7 +69,8 @@ public class ColorRunner implements Runnable{
         INSTANCE.run = false;
     }
 
-    private ColorRunner(View view){
+    private ColorRunner(Activity activity, View view){
+        this.activity = activity;
         this.view = view;
 
         double jump = 360.0 / (COLOR_SIZE*1.0);
@@ -103,7 +107,9 @@ public class ColorRunner implements Runnable{
             }
 
             color = COLORS[index];
-            view.setBackgroundColor(color);
+            final int tmp_color = color;
+
+            activity.runOnUiThread(() -> view.setBackgroundColor(tmp_color));
 
             index += 1;
 
