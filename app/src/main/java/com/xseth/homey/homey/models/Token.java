@@ -25,12 +25,12 @@ public class Token implements Serializable {
     // States type of accessToken
     @SerializedName("token_type")
     private String tokenType;
-    // Token used to get new accessToken
 
+    // Token used to get new accessToken
     @SerializedName("refresh_token")
     private String refreshToken;
-    // File name used for storing Token value
 
+    // File name used for storing Token value
     @Expose(serialize = false)
     private static String file_name = "token.json";
 
