@@ -225,6 +225,9 @@ public class HomeyAPI {
 
         Timber.i("Start authenticating homey");
 
+        if(this.user == null && !this.isLoggedIn())
+            throw new IOException("Failed to retrieve user");
+
         // Get delegationToken from AthomCloudAPI
         Call<String> call = cloudService.authenticateHomey(jsonParams);
         String delegationToken = call.execute().body();
