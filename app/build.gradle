@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'com.google.gms.google-services'
 
 Properties properties = new Properties()
 properties.load(project.rootProject.file('local.properties').newDataInputStream())
@@ -55,6 +56,9 @@ dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation 'com.google.android.support:wearable:2.7.0'
     implementation 'androidx.recyclerview:recyclerview:1.1.0'
+
+    // add the Firebase SDK for Google Analytics
+    implementation 'com.google.firebase:firebase-analytics:17.5.0'
 
     implementation 'androidx.wear:wear:1.0.0'
     implementation 'androidx.core:core:1.3.0'
